@@ -1,0 +1,127 @@
+version: "3"
+services:
+
+  zookeeper:
+    container_name: "kafka-postman_zookeeper1"
+    image: confluent/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - net
+    environment:
+      zk_id: 1
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  kafka:
+    container_name: "kafka-postman_kafka1"
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - net
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "kafka-postman_zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092
+      KAFKA_LISTENERS: INSIDE://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    depends_on:
+      - zookeeper
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  redis:
+    container_name: "kafka_postman_redis1"
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  data_generator:
+    container_name: "kafka_postman_data-generator"
+    image: artifexil/kafka-postman_data-generator:latest
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      RAW_DATA_TOPIC: "metrics"
+
+  data_poller1:
+    container_name: "kafka_postman_data-poller-bugs_bunny"
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "bugs_bunny"
+
+  data_poller2:
+    container_name: "kafka_postman_data-poller-daffy_duck"
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "daffy_duck"
+
+  manhole:
+    container_name: "kafka_postman_manhole"
+    image: artifexil/kafka-postman_manhole:latest
+    tty: true
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  kafka_postman:
+    container_name: "kafka-postman"
+    image: artifexil/kafka-postman:latest
+    networks:
+      - net
+    environment:
+      KAFKA_POSTMAN_KAFKA_CONSUMER_SERVER: "kafka-postman_kafka:9092"
+      KAFKA_POSTMAN_SOURCE_TOPIC: "metrics"
+      KAFKA_POSTMAN_REDIS_ADDRESSES: "kafka-postman_redis:6379"
+      KAFKA_POSTMAN_DISTRIBUTION_STRATEGY: "RANDOM"
+      KAFKA_POSTMAN_TOPIC_PINNING_REGEX: "^[^\\.]+\\.([^\\.]+)\\."
+      KAFKA_POSTMAN_TOPIC_PINNING_REGEX_GROUPS_INDEXES: "1"
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+
+networks:
+  net:

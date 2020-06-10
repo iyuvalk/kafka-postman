@@ -5,11 +5,11 @@ Your kafka topics organizer
 When I wrote the Pensu service for metrics anomaly detection and prediction, I quickly realized that since that this service reads the metrics from a Kafka topic and outputs its predictions and anomaly scores to another Kafka topic, it will need some way to scale horizontally. Since that just adding more instances of the service cannot guarantee that once a service starts to get a specific metric it will continue to receive all the datapoints for that metric from that moment on, I decided to write this service to help distribute data from one source topic to several destination topics based on some configurable logic.
 
 ## The basic algorithm
-This service is comprised of two steps that are running simultaneously on different threads:
+This service comprises two steps that are running simultaneously on different threads:
 1. Topics discovery
 1.1. Discovery method is set to REGEX:
 1.1.1. Every n seconds (configurable by an environment variable) a list of all available topics will be collected from the destination Kafka broker.
-1.1.1. Every topic name that matches a configured regex (configurable by an environment variable) will be considered as discovered and will be stored in Redis by using the following key format "$KafkaPostman_REDIS_TOPICS_PREFIX-$TopicName" without an expiry date for the topics selection phase.
+1.1.1. Every topic name that matches a configured regex (configurable by an environment variable) will be considered as discovered and will be stored in Redis by using the following key format "$KafkaPostman_REDIS_TOPICS_PREFIX-$TopicName" without an expiry date for the topics' selection phase.
 1.1. Discovery method is set to TOPICS_TOPIC:
 1.1.1. The discovery thread will launch a kafka consumer that will be configured to consume from the topic specified by a relevant environment variable.
 1.1.1. For every topic consumed, the thread will store it in Redis by using the following key format "$KafkaPostman_REDIS_TOPICS_PREFIX-$TopicName" with an expiry time set by $KafkaPostman_REDIS_TOPICS_SLIDING_EXPIRY_MS (if already exist it will reset its expiry time). This mode allows the service to detect dead consumers and start sending the data that was previously consumed by them to another consumer.
@@ -19,7 +19,7 @@ This service is comprised of two steps that are running simultaneously on differ
 
 ### This service is controlled by the folowing environment variables:
 ```
-KafkaPostman_TOPICS_DISCOVERY_METHOD - A strategy for discovering new destination topics. Can be one of: REGEX, TOPICS_TOPIC (by using a topic that all consumers periodically send the topic they're listening on to make sure the data is sent to topics that are read by other processes)
+KafkaPostman_TOPICS_DISCOVERY_METHOD - A strategy for discovering new destination topics. Can be one of: REGEX, TOPICS_TOPIC (by using a topic that all consumers periodically send the topic they're listening on to make sure the data is sent to topics that are read by other processes) - Defaults to "REGEX"
 
 KafkaPostman_TOPICS_DISCOVERY_REGEX - If KafkaPostman_TOPICS_DISCOVERY_METHOD is set to REGEX use this to set a regex that we'll attempt to match each topic on kafka periodically and add those who matched it to the list of discovered topics
 
@@ -27,7 +27,7 @@ KafkaPostman_TOPICS_SELECTION_REGEX - A regex that will be used to extract a por
 
 KafkaPostman_TOPICS_DISTRIBUTION_STRATEGY - A strategy that will be used to select a destination topic once a new type of data (or no regex was defined). Can be one of: ROUND_ROBIN, RANDOM, REGEX (Will use the selected part of the data matched by the first group selection in the regex as destination topic)
 
-KafkaPostman_REDIS_TOPICS_PREFIX - A prefix that will be added to every topic that has been discovered. Using this prefix will allow the message distributor to get a list of all topics discovrered.
+KafkaPostman_REDIS_TOPICS_PREFIX - A prefix that will be added to every topic that has been discovered. Using this prefix will allow the message distributor to get a list of all topics discovered.
 
 KafkaPostman_REDIS_TOPICS_SLIDING_EXPIRY_MS - A number of milliseconds that a discovered topic or a message part and the topic assigned to it will be saved in redis for since the last time they were discovered/saved.
 
@@ -43,7 +43,7 @@ KafkaPostman_KAFKA_PRODUCER_CLIENT_ID - The client ID that will be used when sen
 
 KafkaPostman_KAFKA_PRODUCER_SERVER - The server (such as localhost:9020) to which the service will connect to publish the data in the relevant topics.
 
-KafkaPostman_TOPICS_KAFKA_TOPIC - The Kafka topic that will be used to by the service to discover the available destination topics if KafkaPostman_TOPICS_DISCOVERY_METHOD is set to TOPICS_TOPIC
+KafkaPostman_TOPICS_DISCOVERY_TOPIC - The Kafka topic that will be used to by the service to discover the available destination topics if KafkaPostman_TOPICS_DISCOVERY_METHOD is set to TOPICS_TOPIC
 
 KafkaPostman_SOURCE_TOPIC - The Kafka topic that will be used by the service to pull data from (and to distribute that data to the available destination topics)
 ```
