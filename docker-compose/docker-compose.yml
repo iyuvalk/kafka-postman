@@ -110,7 +110,7 @@ services:
     environment:
       KAFKA_POSTMAN_KAFKA_CONSUMER_SERVER: "kafka-postman_kafka:9092"
       KAFKA_POSTMAN_SOURCE_TOPIC: "metrics"
-      KAFKA_POSTMAN_REDIS_ADDRESSES: "kafka-postman_redis:6379"
+      KAFKA_POSTMAN_REDIS_ADDRESSES: "[\"kafka-postman_redis:6379\"]"
       KAFKA_POSTMAN_DISTRIBUTION_STRATEGY: "RANDOM"
       KAFKA_POSTMAN_TOPIC_PINNING_REGEX: "^[^\\.]+\\.([^\\.]+)\\."
       KAFKA_POSTMAN_TOPIC_PINNING_REGEX_GROUPS_INDEXES: "1"

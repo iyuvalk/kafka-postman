@@ -17,34 +17,43 @@ const (
 )
 
 type LogMessage struct {
-	Timestamp time.Time
-	Caller string
-	Level LogLevel
-	Message string
-	Error error
+	Timestamp     time.Time
+	Caller        string
+	Level         LogLevel
+	MessageFormat string
+	Error         error
 }
 
 
 
-func LogForwarder(msg LogMessage) {
+func LogForwarder(config *Config, msg LogMessage, messageObjects ...interface{}) {
+	if config != nil && config.LogLevel < msg.Level {
+		return
+	}
+
 	type logMessageRaw struct {
-		Timestamp time.Time
-		Version string
-		LogLevelLabel string
-		Caller string
-		Level LogLevel
-		Message string
-		Error error
+		Timestamp      time.Time
+		Version        string
+		LogLevelLabel  string
+		Caller         string
+		Level          LogLevel
+		Message        string
+		Error          error
 	}
 
 	jsonMessage := logMessageRaw{
-		Timestamp:     msg.Timestamp,
-		Version:       GetMyVersion(),
-		LogLevelLabel: "",
-		Caller:        msg.Caller,
-		Level:         msg.Level,
-		Message:       msg.Message,
-		Error:         msg.Error,
+		Timestamp:      msg.Timestamp,
+		Version:        GetMyVersion(),
+		LogLevelLabel:  "",
+		Caller:         msg.Caller,
+		Level:          msg.Level,
+		Error:          msg.Error,
+	}
+
+	if messageObjects == nil || len(messageObjects) == 0 {
+		jsonMessage.Message = msg.MessageFormat
+	} else {
+		jsonMessage.Message = fmt.Sprintf(msg.MessageFormat, messageObjects[:]...)
 	}
 
 	if jsonMessage.Timestamp.IsZero() {
@@ -63,7 +72,7 @@ func LogForwarder(msg LogMessage) {
 	case LogLevel_INFO:
 		jsonMessage.LogLevelLabel = "[INFO   ]"
 	default:
-		panic("Unknown log level " + strconv.FormatInt(int64(msg.Level), 10) + " for message " + fmt.Sprintf("%v", msg.Message) + " from " + fmt.Sprintf("%v", msg.Caller))
+		panic("Unknown log level " + strconv.FormatInt(int64(msg.Level), 10) + " for message " + fmt.Sprintf("%v", msg.MessageFormat) + " from " + fmt.Sprintf("%v", msg.Caller))
 	}
 
 	jsonMessageJsonString, _ := json.Marshal(jsonMessage)

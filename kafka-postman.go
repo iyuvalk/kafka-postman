@@ -5,264 +5,51 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/joomcode/redispipe/redis"
 	"github.com/joomcode/redispipe/rediscluster"
 	"github.com/joomcode/redispipe/redisconn"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 	"math/rand"
 	"os"
-	"regexp"
-	"strconv"
+	"sort"
 	"strings"
 	"time"
 )
 
-type Config struct {
-	DiscoveryMethod                    string
-	DiscoveryRegex                     *regexp.Regexp
-	DiscoveryManualTopicsList          string
-	DiscoveryManualTopicsListSeparator string
-	DistributionRegex                  *regexp.Regexp
-	DistributionRegexGroupIndex        int
-	DistributionStrategy               string
-	TopicsDistributionRegexGroupIndex  int
-	TopicPinningEnabled                bool
-	TopicPinningRedisAddresses         []string
-	TopicPinningRedisDbNo              int
-	TopicPinningRedisDbPassword        string
-	TopicPinningRedisClusterName       string
-	TopicPinningHashSlidingExpiryMs    int64
-	DiscoveryIntervalMs                int64
-	LoggingFormat                      string
-	LogLevel                           LogLevel
-	KafkaConsumerClientId              string
-	KafkaConsumerGroupId               string
-	KafkaConsumerDefaultOffset         string
-	KafkaConsumerServerHost            string
-	KafkaProducerClientId              string
-	KafkaProducerServerHost            string
-	DiscoveryTopicsTopic               string
-	SourceTopic                        string
-	DefaultTargetTopic                 string
-	AutoCreateMissingTopics            bool
-	TopicPinningRegex                  *regexp.Regexp
-	TopicPinningRegexGroupIndexes      []int64
+type SortableTopicsListItem struct {
+	TopicName string
+	TopicIndex int
 }
 
-type ConfigParamValue struct {
-	Type         ConfigParamValueType
-	ValueInt     int64
-	ValueBool    bool
-	ValueString  string
-	ValueRegex   *regexp.Regexp
+type SortableTopicsListItemsDesc []SortableTopicsListItem
+
+func (sortableTopicListItems SortableTopicsListItemsDesc) Len() int {
+	return len(sortableTopicListItems)
 }
 
-func autoSelectConfig(defaultValue string, envVarNameToTest CONFIG_ENV_VARS, configValidationMode []ConfigValidationMode, configParamValueType ConfigParamValueType, stringsList []string) ConfigParamValue {
-	CUR_FUNCTION := "autoSelectConfig"
-	var rawStringValue string
-
-	fallingBackToDefaultValue := false
-	for _, validationRequested := range configValidationMode {
-		switch validationRequested {
-		case ConfigValidationMode_LIST_BASED:
-			if stringsList == nil || len(stringsList) == 0 {
-				panic("ERROR: The list of acceptable values should not be empty (otherwise every value would become invalid)")
-			}
-			if len(os.Getenv(string(envVarNameToTest))) == 0 || !stringInSlice(os.Getenv(string(envVarNameToTest)), stringsList) {
-				rawStringValue = defaultValue
-				fallingBackToDefaultValue = true
-			} else {
-				rawStringValue = os.Getenv(string(envVarNameToTest))
-			}
-		case ConfigValidationMode_IS_EMPTY:
-			if len(os.Getenv(string(envVarNameToTest))) == 0 {
-				rawStringValue = defaultValue
-				fallingBackToDefaultValue = true
-			} else {
-				rawStringValue = os.Getenv(string(envVarNameToTest))
-			}
-		case ConfigValidationMode_IS_INT:
-			tempString := os.Getenv(string(envVarNameToTest))
-			_, err := strconv.ParseInt(tempString, 10, 64)
-			if err == nil {
-				rawStringValue = tempString
-				fallingBackToDefaultValue = true
-			} else {
-				rawStringValue = defaultValue
-			}
-		case ConfigValidationMode_IS_BOOL:
-			tempString := os.Getenv(string(envVarNameToTest))
-			if tempString == "True" || tempString == "true" || tempString == "False" || tempString == "false" {
-				rawStringValue = tempString
-				fallingBackToDefaultValue = true
-			} else {
-				rawStringValue = defaultValue
-			}
-		case ConfigValidationMode_IS_REGEX:
-			if len(os.Getenv(string(envVarNameToTest))) > 0 {
-				_, err := regexp.Compile(os.Getenv(string(envVarNameToTest)))
-				if err != nil {
-					rawStringValue = defaultValue
-					fallingBackToDefaultValue = true
-				} else {
-					rawStringValue = os.Getenv(string(envVarNameToTest))
-				}
-			} else {
-				rawStringValue = defaultValue
-			}
-		case ConfigValidationMode_IS_REGEX_MATCH_AND:
-			if stringsList == nil || len(stringsList) == 0 {
-				panic("ERROR: The list of regexes to test should not be empty (otherwise every value would become invalid)")
-			}
-			allRegexesMatched := false
-			for i, regexToTestRaw := range stringsList {
-				regexToTest, err := regexp.Compile(regexToTestRaw)
-				if err != nil {
-					panic("ERROR: The regex " + regexToTestRaw + " (No. " + strconv.Itoa(i) + ") could not be compiled as a regex")
-				}
-				allRegexesMatched = allRegexesMatched && regexToTest.Match([]byte(os.Getenv(string(envVarNameToTest))))
-			}
-			if allRegexesMatched {
-				rawStringValue = os.Getenv(string(envVarNameToTest))
-			} else {
-				rawStringValue = defaultValue
-				fallingBackToDefaultValue = true
-			}
-		case ConfigValidationMode_IS_REGEX_MATCH_OR:
-			if stringsList == nil || len(stringsList) == 0 {
-				panic("ERROR: The list of regexes to test should not be empty (otherwise every value would become invalid)")
-			}
-			allRegexesMatched := false
-			for i, regexToTestRaw := range stringsList {
-				regexToTest, err := regexp.Compile(regexToTestRaw)
-				if err != nil {
-					panic("ERROR: The regex " + regexToTestRaw + " (No. " + strconv.Itoa(i) + ") could not be compiled as a regex")
-				}
-				allRegexesMatched = allRegexesMatched || regexToTest.Match([]byte(os.Getenv(string(envVarNameToTest))))
-			}
-			if allRegexesMatched {
-				rawStringValue = os.Getenv(string(envVarNameToTest))
-			} else {
-				rawStringValue = defaultValue
-				fallingBackToDefaultValue = true
-			}
-		default:
-			panic("ERROR: Unknown config validation type.")
-		}
-
-		_, environmentVarSet := os.LookupEnv(string(envVarNameToTest))
-		if fallingBackToDefaultValue && environmentVarSet {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_WARN, Message: "The value of " + string(envVarNameToTest) + " is invalid. Using the default value " + defaultValue})
-		}
-	}
-
-	switch configParamValueType {
-	case ConfigParamValueType_INT:
-		val, _ := strconv.ParseInt(rawStringValue, 10, 64)
-		return ConfigParamValue{
-		   Type: ConfigParamValueType_INT,
-		   ValueInt: val,
-		}
-	case ConfigParamValueType_BOOL:
-		if strings.ToUpper(rawStringValue) == "TRUE" {
-			return ConfigParamValue{
-				Type: ConfigParamValueType_BOOL,
-				ValueBool: true,
-			}
-		} else {
-			return ConfigParamValue{
-				Type: ConfigParamValueType_BOOL,
-				ValueBool: false,
-			}
-		}
-	case ConfigParamValueType_STRING:
-		return ConfigParamValue{
-			Type: ConfigParamValueType_STRING,
-			ValueString: rawStringValue,
-		}
-	case ConfigParamValueType_REGEX:
-		val, _ := regexp.Compile(rawStringValue)
-		return ConfigParamValue{
-			Type: ConfigParamValueType_REGEX,
-			ValueRegex: val,
-		}
-	default:
-		panic("ERROR: Unknown config parameter value type.")
-	}
+func (sortableTopicListItems SortableTopicsListItemsDesc) Less(i, j int) bool {
+	return sortableTopicListItems[i].TopicIndex < sortableTopicListItems[j].TopicIndex
 }
-func getConfig() Config {
-	clientId := uuid.Must(uuid.NewRandom())
-	const (
-		DEFAULT_DISCOVERY_METHOD                       = DISCOVERY_METHOD_REGEX
-		DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST           = ""
-		DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR = ","
-		DEFAULT_DISCOVERY_REGEX                        = ".*"
-		DEFAULT_DISTRIBUTION_REGEX                     = "^([^\\\\.]+)\\..*$"
-		DEFAULT_DISTRIBUTION_REGEX_GROUP_INDEX         = 1
-		DEFAULT_DISTRIBUTION_STRATEGY                  = DISTRIBUTION_STRATEGY_REGEX
-		DEFAULT_TOPIC_PINNING_REDIS_ADDRESSES          = "redis:6379"
-		DEFAULT_TOPIC_PINNING_REDIS_DB_NO              = 0
-		DEFAULT_TOPIC_PINNING_REDIS_DB_PASSWORD        = ""
-		DEFAULT_TOPIC_PINNING_REDIS_CLUSTER_NAME       = ""
-		DEFAULT_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS   = 3600000
-		DEFAULT_TOPICS_DISCOVERY_INTERVAL              = 1800000
-		DEFAULT_LOGGING_FORMAT                         = ""
-		DEFAULT_LOG_LEVEL                              = LogLevel_VERBOSE
-		DEFAULT_KAFKA_CONSUMER_SERVER_HOST             = "kafka:9092"
-		DEFAULT_KAFKA_PRODUCER_SERVER_HOST             = "kafka:9092"
-		DEFAULT_KAFKA_CONSUMER_GROUP_ID                = "kafka-postman"
-		DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET          = KAFKA_DEFAULT_OFFSET_END
-		DEFAULT_DISCOVERY_TOPICS_TOPIC                 = "consumers"
-		DEFAULT_SOURCE_TOPIC                           = "metrics"
-		DEFAULT_DEFAULT_TARGET_TOPIC                   = "_unknown_recipient"
-		DEFAULT_AUTO_CREATE_MISSING_TOPICS             = "true"
-		DEFAULT_TOPIC_PINNING_ENABLED                  = "true"
-		DEFAULT_TOPIC_PINNING_REGEX                    = "^([^\\\\.]+)\\..*$"
-		DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES     = "0"
 
-	)
-	var (
-		DEFAULT_KAFKA_CONSUMER_CLIENT_ID        = clientId.String()
-		DEFAULT_KAFKA_PRODUCER_CLIENT_ID        = clientId.String()
-	)
+func (sortableTopicListItems SortableTopicsListItemsDesc) Swap(i, j int) {
+	sortableTopicListItems[i], sortableTopicListItems[j] = sortableTopicListItems[j], sortableTopicListItems[i]
+}
 
-	return Config{
-		LoggingFormat:                      autoSelectConfig(DEFAULT_LOGGING_FORMAT, LOGGING_FORMAT, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		LogLevel:                           LogLevel(autoSelectConfig(strconv.FormatInt(DEFAULT_LOG_LEVEL, 10), LOG_LEVEL, []ConfigValidationMode{ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		KafkaConsumerClientId:              autoSelectConfig(DEFAULT_KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaConsumerServerHost:            autoSelectConfig(DEFAULT_KAFKA_CONSUMER_SERVER_HOST, KAFKA_CONSUMER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaProducerClientId:              autoSelectConfig(DEFAULT_KAFKA_PRODUCER_CLIENT_ID, KAFKA_PRODUCER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaConsumerGroupId:               autoSelectConfig(DEFAULT_KAFKA_CONSUMER_GROUP_ID, KAFKA_CONSUMER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaConsumerDefaultOffset:         autoSelectConfig(DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET, KAFKA_CONSUMER_DEFAULT_OFFSET, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, KAFKA_DEFAULT_OFFSET_OPTIONS).ValueString,
-		KafkaProducerServerHost:            autoSelectConfig(DEFAULT_KAFKA_PRODUCER_SERVER_HOST, KAFKA_PRODUCER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		AutoCreateMissingTopics:            bool(autoSelectConfig(DEFAULT_AUTO_CREATE_MISSING_TOPICS, AUTO_CREATE_MISSING_TOPICS, []ConfigValidationMode{ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
-		TopicPinningRegex:                  autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX, TOPIC_PINNING_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
-		TopicPinningRegexGroupIndexes:      parseIntArrFromString(autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES, TOPIC_PINNING_REGEX_GROUPS_INDEXES, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX_MATCH_AND}, ConfigParamValueType_STRING, []string{"^[0-9,]+$"}).ValueString, ","),
-		DiscoveryMethod:                    autoSelectConfig(DEFAULT_DISCOVERY_METHOD, DISCOVERY_METHOD, []ConfigValidationMode{ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, TOPICS_DISCOVERY_METHODS).ValueString,
-		DiscoveryManualTopicsList:          autoSelectConfig(DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST, DISCOVERY_MANUAL_TOPICS_LIST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryManualTopicsListSeparator: autoSelectConfig(DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR, DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryRegex:                     autoSelectConfig(DEFAULT_DISCOVERY_REGEX, DISCOVERY_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
-		DiscoveryTopicsTopic:               autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC, DISCOVERY_TOPICS_TOPIC, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryIntervalMs:                int64(autoSelectConfig(strconv.FormatInt(DEFAULT_TOPICS_DISCOVERY_INTERVAL, 10), DISCOVERY_INTERVAL, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		DistributionStrategy:               autoSelectConfig(DEFAULT_DISTRIBUTION_STRATEGY, DISTRIBUTION_STRATEGY, []ConfigValidationMode{ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, TOPICS_DISTRIBUTION_STRATEGIES).ValueString,
-		DistributionRegex:                  autoSelectConfig(DEFAULT_DISTRIBUTION_REGEX, DISTRIBUTION_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
-		DistributionRegexGroupIndex:        int(autoSelectConfig(strconv.FormatInt(DEFAULT_DISTRIBUTION_REGEX_GROUP_INDEX, 10), DISTRIBUTION_REGEX_GROUP_INDEX, []ConfigValidationMode{ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		TopicPinningEnabled:                bool(autoSelectConfig(DEFAULT_TOPIC_PINNING_ENABLED, TOPIC_PINNING_ENABLED, []ConfigValidationMode{ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
-		TopicPinningRedisAddresses:         strings.Split(autoSelectConfig(DEFAULT_TOPIC_PINNING_REDIS_ADDRESSES, TOPIC_PINNING_REDIS_ADDRESSES, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, ","),
-		TopicPinningRedisDbNo:              int(autoSelectConfig(strconv.FormatInt(DEFAULT_TOPIC_PINNING_REDIS_DB_NO, 10), TOPIC_PINNING_REDIS_DB_NO, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		TopicPinningRedisDbPassword:        autoSelectConfig(DEFAULT_TOPIC_PINNING_REDIS_DB_PASSWORD, TOPIC_PINNING_REDIS_DB_PASSWORD, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		TopicPinningRedisClusterName:       autoSelectConfig(DEFAULT_TOPIC_PINNING_REDIS_CLUSTER_NAME, TOPIC_PINNING_REDIS_CLUSTER_NAME, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		TopicPinningHashSlidingExpiryMs:    int64(autoSelectConfig(strconv.FormatInt(DEFAULT_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS, 10), TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		SourceTopic:                        autoSelectConfig(DEFAULT_SOURCE_TOPIC, SOURCE_TOPIC, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DefaultTargetTopic:                 autoSelectConfig(DEFAULT_DEFAULT_TARGET_TOPIC, DEFAULT_TARGET_TOPIC, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-	}
+type SortableTopicsListItemsAsc []SortableTopicsListItem
+
+func (sortableTopicListItems SortableTopicsListItemsAsc) Len() int {
+	return len(sortableTopicListItems)
 }
-func getMessageFingerprintByRegex(regex, message string)  {
-//  regexExtracts := regex.Extract(regex, message)
-//  messageFingerprint := md5.Hash(regex + strings.Join(regexExtracts))
-//  return messageFingerprint
+
+func (sortableTopicListItems SortableTopicsListItemsAsc) Less(i, j int) bool {
+	return sortableTopicListItems[i].TopicIndex > sortableTopicListItems[j].TopicIndex
 }
+
+func (sortableTopicListItems SortableTopicsListItemsAsc) Swap(i, j int) {
+	sortableTopicListItems[i], sortableTopicListItems[j] = sortableTopicListItems[j], sortableTopicListItems[i]
+}
+
+
 func generateConsumer(bootstrapServer, groupId, clientId, defaultOffset, sourceTopic string) kafka.Consumer {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": bootstrapServer,
@@ -282,83 +69,167 @@ func generateConsumer(bootstrapServer, groupId, clientId, defaultOffset, sourceT
 
 	return *consumer
 }
-func stringInSlice(a string, list []string) bool {
-    for _, b := range list {
-        if b == a {
-            return true
-        }
-    }
-    return false
+func generateProducer(bootstrapServer, groupId, clientId string) kafka.Producer {
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": bootstrapServer,
+		"group.id":          groupId,
+		"client.id":         clientId,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return *producer
 }
+
 func main() {
 	CUR_FUNCTION := "main"
+	var topicsTopicReader *kafka.Consumer
 	discoveredTopics := make([]string, 0, 0)
+	allKafkaTopicsSeen := make([]string, 0, 0)
 	roundRobinTopicIndex := 0
 
-	LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, Message: "Kafka-Postman started."})
+	LogForwarder(nil, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Kafka-Postman started."})
 	lastTopicsDiscoveryTimestamp := int64(0)
 
 	//1. Get configuration
 	config := getConfig()
 	configJsonBytes, err := json.Marshal(config)
 	if err != nil {
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, Message: fmt.Sprint("ERROR: Configuration is not JSON parsable. CANNOT CONTINUE. (", err, ")")})
+		LogForwarder(nil, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, MessageFormat: "ERROR: Configuration is not JSON parsable. CANNOT CONTINUE. (%v)"}, err)
 		os.Exit(8)
 	}
-	LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, Message: fmt.Sprint("This is the loaded config:", string(configJsonBytes))})
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "This is the loaded config: %s"}, configJsonBytes)
 
 	//2. for message_idx, message in kafka.GetMessages(KafkaPostman_SOURCE_TOPIC) {
-	LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, Message:"Connecting to the Kafka..."})
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat:"Connecting to the Kafka..."})
 	kafkaConsumer := generateConsumer(config.KafkaConsumerServerHost, config.KafkaConsumerGroupId, config.KafkaConsumerClientId, config.KafkaConsumerDefaultOffset, config.SourceTopic)
+	kafkaProducer := generateProducer(config.KafkaProducerServerHost, config.KafkaConsumerGroupId, config.KafkaProducerClientId)
 	for {
 		//3. Get a message from Kafka
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Starting to wait for messages from kafka..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Starting to wait for messages from kafka..."})
 		msg, err := kafkaConsumer.ReadMessage(10 * time.Second)
 		if err != nil {
 			if err.Error() == kafka.ErrTimedOut.String() {
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_INFO, Message:"Waiting for a message from Kafka (" + config.KafkaConsumerClientId + "." + config.KafkaConsumerGroupId + "@" + config.KafkaConsumerServerHost + "/" + config.SourceTopic + "@" + config.KafkaConsumerDefaultOffset + ")..."})
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_INFO, MessageFormat:"Waiting for a message from Kafka (%v.%v@%v/%v@%v)..."}, config.KafkaConsumerClientId, config.KafkaConsumerGroupId, config.KafkaConsumerServerHost, config.SourceTopic, config.KafkaConsumerDefaultOffset)
 			} else {
 				// The client will automatically try to recover from all errors.
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_ERROR, Message: fmt.Sprint("Consumer error: %v (%v)", err, msg)})
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_ERROR, MessageFormat: "Consumer error: %v (%v)"}, err, msg)
 			}
 		} else {
+			timeHandlingStarted := time.Now()
 			msgValue := string(msg.Value)
 
 			//3. (Re-)Discover topics if needed
-			if timeSinceLastDiscovery := time.Now().Unix() - lastTopicsDiscoveryTimestamp; timeSinceLastDiscovery > config.DiscoveryIntervalMs || len(discoveredTopics) == 0 {
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message: "Re-discovering destination topics. (timeSinceLastDiscovery: " + strconv.FormatInt(timeSinceLastDiscovery, 10) + ", config.DiscoveryIntervalMs: " + strconv.FormatInt(config.DiscoveryIntervalMs, 10) + ", len(discoveredTopics): " + strconv.FormatInt(int64(len(discoveredTopics)), 10) + ")"})
-				discoveredTopics = discoverTopics(config, kafkaConsumer, discoveredTopics)
+			var timeDiscoveryTaken time.Duration
+			if timeSinceLastDiscovery := time.Now().Unix() - lastTopicsDiscoveryTimestamp; timeSinceLastDiscovery > config.DiscoveryIntervalMs || len(discoveredTopics) == 0 || len(allKafkaTopicsSeen) == 0 {
+				timeDiscoveryStarted := time.Now()
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Re-discovering destination topics. (timeSinceLastDiscovery: %v, config.DiscoveryIntervalMs: %v, len(discoveredTopics): %v)"}, timeSinceLastDiscovery, config.DiscoveryIntervalMs, len(discoveredTopics))
+				discoveredTopics, allKafkaTopicsSeen = discoverTopics(config, kafkaConsumer, discoveredTopics, topicsTopicReader)
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Discovered the following topics: %v"}, discoveredTopics)
+				if config.AutoDestinationTopicFilteringEnabled {
+					discoveredTopics = filterOutInvalidTopics(discoveredTopics, config)
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "After filtering the invalid topics this is the list of discovered topics: %v"}, discoveredTopics)
+				} else {
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Destination topics filtering is disabled. If this feature is disabled the service might write to the same topic it is reading from or to topics that are internally used by kafka, this can cause unpredictable behaviour"})
+				}
 				lastTopicsDiscoveryTimestamp = time.Now().Unix()
+				timeDiscoveryTaken = time.Now().Sub(timeDiscoveryStarted)
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Topics discovery ran. Time taken: %v"}, timeDiscoveryTaken)
 			}
 
 			//4. Decide on a default destination topic (based on distribution strategy)
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message: "Getting the default destination topic based on the distribution strategy..."})
-			//TODO: Must check that the destination topic is not our source topic (if the consumer and producer have the same address/port)
-			defaultDestinationTopic := getDefaultDestinationTopic(config, discoveredTopics, roundRobinTopicIndex, msgValue)
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message: "Currently, the destination topic is: " + defaultDestinationTopic})
+			timeDestinationTopicDecisionStarted := time.Now()
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Getting the default destination topic based on the distribution strategy..."})
+			defaultDestinationTopic := getDefaultDestinationTopic(config, discoveredTopics, &roundRobinTopicIndex, msgValue)
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Currently, the destination topic is: %v"}, defaultDestinationTopic)
 
 			//5. Handle topic pinning (if enabled)
 			if config.TopicPinningEnabled {
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message: "Handling topic pinning..."})
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Handling topic pinning..."})
 				defaultDestinationTopic = handleTopicPinning(config, defaultDestinationTopic, msgValue)
-				//TODO: By now the defaultDestinationTopic changes to a value that looks like an array with random numbers
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message: "Currently, the destination topic is: " + defaultDestinationTopic})
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Currently, the destination topic is: %s"}, defaultDestinationTopic)
 			} else {
-				LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message: "Topic pinning is disabled..."})
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topic pinning is disabled..."})
+			}
+			timeDestinationTopicDecisionTaken := time.Now().Sub(timeDestinationTopicDecisionStarted)
+
+			if config.LogLevel >= LogLevel_VERBOSE {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_VERBOSE, Error: nil, MessageFormat: "Will forward the message '%s' to topic %s"}, msg.Value, defaultDestinationTopic)
+			} else {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Will forward current message to topic %s"}, defaultDestinationTopic)
 			}
 
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, Message: fmt.Sprint("Will forward the message '" + string(msg.Value) + "' to topic " + defaultDestinationTopic)})
-			//6. kafka.PublishMessage(selected_topic, message)
+			//6. Topic validation - For DISTRIBUTION_STRATEGY_REGEX, DISCOVERY_METHOD_MANUAL or DISCOVERY_METHOD_TOPICS_TOPIC (in these configuration the service DYNAMICALLY selects a topic based on information that is not provided by Kafka)
+			if config.DistributionStrategy == DISTRIBUTION_STRATEGY_REGEX || config.DiscoveryMethod == DISCOVERY_METHOD_MANUAL || config.DiscoveryMethod == DISCOVERY_METHOD_TOPICS_TOPIC {
+				//If the dest topic is valid proceed, otherwise resort to configured default topic
+				if !validateDestinationTopic(defaultDestinationTopic, allKafkaTopicsSeen, config) {
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_WARN, Error: nil, MessageFormat: "Topic %v is invalid according to the topic validation methods selected. Sending this message to default destination topic %v"}, defaultDestinationTopic, config.DefaultTargetTopic)
+					defaultDestinationTopic = config.DefaultTargetTopic
+				}
+			}
+
+			//7. kafka.PublishMessage(selected_topic, message)
+			deliveryChan := make(chan kafka.Event)
+			kafkaProducer.Produce(&kafka.Message{
+				TopicPartition: kafka.TopicPartition{Topic: &defaultDestinationTopic, Partition: kafka.PartitionAny},
+				Value:          []byte(msgValue),
+				Headers:        []kafka.Header{{Key: "ProducedBy", Value: []byte("KafkaPostman_v" + GetMyVersion())}},
+			}, deliveryChan)
+
+			timeHandlingTaken := time.Now().Sub(timeHandlingStarted)
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Message handling completed. (timeDiscoveryTaken: %v, timeDestinationTopicDecisionTaken: %v, timeTotalHandlingTaken: %v)"}, timeDiscoveryTaken, timeDestinationTopicDecisionTaken, timeHandlingTaken)
 		}
 	}
+}
+
+func validateDestinationTopic(destinationTopic string, kafkaTopics []string, config Config) (result bool) {
+	result = true
+	if config.TopicsValidationValidateAgainstKafka ||
+		len(config.TopicsValidationWhitelist) > 0 ||
+		len(config.TopicsValidationBlacklist) > 0 ||
+		len(config.TopicsValidationRegexWhitelist) > 0 ||
+		len(config.TopicsValidationRegexBlacklist) > 0 {
+		if result && config.TopicsValidationValidateAgainstKafka && !stringInSlice(destinationTopic, kafkaTopics) {
+			result = false
+			return
+		}
+		if result && len(config.TopicsValidationWhitelist) > 0 && !stringInSlice(destinationTopic, config.TopicsValidationWhitelist) {
+			result = false
+			return
+		}
+		if result && len(config.TopicsValidationBlacklist) > 0 && stringInSlice(destinationTopic, config.TopicsValidationBlacklist) {
+			result = false
+			return
+		}
+		if result && len(config.TopicsValidationRegexWhitelist) > 0 && len(extractMatches([]string{destinationTopic}, config.TopicsValidationRegexWhitelist)) == 0 {
+			result = false
+			return
+		}
+		if result && len(config.TopicsValidationRegexBlacklist) > 0 && len(extractMatches([]string{destinationTopic}, config.TopicsValidationRegexBlacklist)) > 0 {
+			result = false
+			return
+		}
+	}
+	return
+}
+
+func filterOutInvalidTopics(discoveredTopics []string, config Config) []string {
+	temp := make([]string, 0)
+	for _, discoveredTopic := range discoveredTopics {
+		if !strings.HasPrefix(discoveredTopic, "__") && (config.KafkaConsumerServerHost != config.KafkaProducerServerHost || discoveredTopic != config.SourceTopic) {
+			temp = append(temp, discoveredTopic)
+		}
+	}
+	discoveredTopics = temp
+	return discoveredTopics
 }
 
 func handleTopicPinning(config Config, defaultDestinationTopic string, msg string) string {
 	CUR_FUNCTION := "handleTopicPinning"
 	var sender redis.Sender
 	var err error
-
-	//TODO: Build and test a program that will test the connectivity and get/set from/to redis before continuing
 
 	ctx := context.Background()
 	if config.TopicPinningRedisClusterName == "" {
@@ -373,7 +244,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 			return conn, err
 		}
 
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Connecting to a single redis (the cluster name is empty)..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Connecting to a single redis (the cluster name is empty)..."})
 		sender, err = SingleRedis(ctx)
 	} else {
 		//Redis cluster
@@ -392,146 +263,235 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 			return cluster, err
 		}
 
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Connecting to a redis cluster (the cluster name is not empty)..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Connecting to a redis cluster (the cluster name is not empty)..."})
 		sender, err = ClusterRedis(ctx)
 	}
 	if err != nil {
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_WARN, Message: "Could not process topic pinning. An error occurred while opening a connection to Redis."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_WARN, MessageFormat: "Could not process topic pinning. An error occurred while opening a connection to Redis."})
 	} else {
 		defer sender.Close()
 
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message:"Creating the sync object..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat:"Creating the sync object..."})
 		sync := redis.SyncCtx{sender} // wrapper for synchronous api
 
 		//4.1. Create a fingerprint of the message by hashing the text extracted by the regex groups
 		if config.LogLevel >= LogLevel_VERBOSE {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message:"Successfully connected to redis. Calculating a message fingerprint for the current message... (msg: `" + fmt.Sprintf("%v", msg) + "', config.TopicPinningRegex: " + fmt.Sprintf("%v",config.TopicPinningRegex) + ", config.TopicPinningRegexGroupIndexes: " + fmt.Sprintf("%v", config.TopicPinningRegexGroupIndexes) + ")"})
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat:"Successfully connected to redis. Calculating a message fingerprint for the current message... (msg: `%v', config.TopicPinningRegex: %v, config.TopicPinningRegexGroupIndexes: %v)"}, msg, config.TopicPinningRegex, config.TopicPinningRegexGroupIndexes)
 		} else {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message: "Successfully connected to redis. Calculating a message fingerprint for the current message..."})
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Successfully connected to redis. Calculating a message fingerprint for the current message..."})
 		}
-		hasher := md5.New()
 		regexMatches := config.TopicPinningRegex.FindStringSubmatch(msg)
 		messageFingerprintRaw :=  make([]string, 0)
 		for _, groupIdx := range config.TopicPinningRegexGroupIndexes {
 			messageFingerprintRaw = append(messageFingerprintRaw, regexMatches[groupIdx])
 		}
 		messageFingerprintRawBytes, _ := json.Marshal(messageFingerprintRaw)
-		messageFingerprint := hasher.Sum(messageFingerprintRawBytes)
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, Message: "Created the following fingerprint for the current message. (fingerprint: " + fmt.Sprintf("%x", messageFingerprint) + ", message: `" + fmt.Sprintf("%v", msg) + "')"})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "This is the raw text used as the basis for the fingerprint: %v"}, string(messageFingerprintRawBytes))
+		messageFingerprint := fmt.Sprintf("%x", md5.Sum(messageFingerprintRawBytes))
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Created the following fingerprint for the current message. (fingerprint: %v, message: `%v')"}, messageFingerprint, msg)
 
 		//4.2. Try to find the fingerprint on Redis by using the fingerprint as the key
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Trying to find the message fingerprint on redis..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Trying to find the message fingerprint on redis..."})
 		res := sync.Do(ctx, "GET", messageFingerprint)
 		if err := redis.AsError(res); err == nil && res != nil {
 			//4.2.1. The fingerprint was found on Redis:
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"The fingerprint was found on redis. Selecting the topic found as the default topic for the current message."})
-			defaultDestinationTopic = fmt.Sprintf("%q", res)
+			defaultDestinationTopic = string(res.([]byte))
+			if config.LogLevel == LogLevel_VERBOSE {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The fingerprint was found on redis. Selecting the topic found as the default topic for the current message. (message: `%v', fingerprint: %v, topic: %v)"}, msg, messageFingerprint, defaultDestinationTopic)
+			} else {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "The fingerprint was found on redis. Selecting the topic found as the default topic for the current message."})
+			}
 		} else {
-			//TODO: Why this never happens?
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"The fingerprint was not found on redis. Selecting the topic found as the default topic so far (by other methods) for the current message."})
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"The fingerprint was not found on redis. Selecting the topic found as the default topic so far (by other methods) for the current message. (err: %v, res: %v)"}, err, res)
 		}
 
 		//4.3. Write the value of defaultDestinationTopic to Redis under the current fingerprint to either reset the fingerprint sliding expiration (if already exists) or to cache it (if it's new)
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Updating the selected topic for the current message fingerprint to either reset the sliding expiration if already exist or to set the fingerprint for other similar messages if not already exist..."})
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Updating the selected topic for the current message fingerprint to either reset the sliding expiration if already exist or to set the fingerprint for other similar messages if not already exist..."})
 		res = sync.Do(ctx, "SET", messageFingerprint, defaultDestinationTopic, "PX", config.TopicPinningHashSlidingExpiryMs)
 		if err := redis.AsError(res); err != nil {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_WARN, Message: "Could not process topic pinning. An error occurred while updating a value to Redis."})
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_WARN, MessageFormat: "Could not process topic pinning. An error occurred while updating a value to Redis."})
 		}
 	}
 	return defaultDestinationTopic
 }
 
-func parseIntArrFromString(intArrString, delimiter string) []int64 {
-	res := make([]int64, 0)
-	for _, numAsStr := range strings.Split(intArrString, delimiter) {
-		numAsInt, err := strconv.ParseInt(numAsStr, 10, 64)
-		if err != nil {
-			panic("Could not parse the given string array to an int array")
-		}
-		res = append(res, numAsInt)
-	}
-	return res
-}
-
-func getDefaultDestinationTopic(config Config, discoveredTopics []string, roundRobinTopicIndex int, msg string) string {
+func getDefaultDestinationTopic(config Config, discoveredTopics []string, roundRobinTopicIndex *int, msg string) string {
 	CUR_FUNCTION := "getDefaultDestinationTopic"
 	defaultDestinationTopic := config.DefaultTargetTopic
+	curTopicIndex := -1
 	switch config.DistributionStrategy {
 	case DISTRIBUTION_STRATEGY_RANDOM:
-		defaultDestinationTopic = discoveredTopics[rand.Intn(len(discoveredTopics))]
+		curTopicIndex = rand.Intn(len(discoveredTopics))
+		defaultDestinationTopic = discoveredTopics[curTopicIndex]
 	case DISTRIBUTION_STRATEGY_ROUND_ROBIN:
-		roundRobinTopicIndex++
-		if roundRobinTopicIndex >= len(discoveredTopics) {
-			roundRobinTopicIndex = 0
+		*roundRobinTopicIndex++
+		if *roundRobinTopicIndex >= len(discoveredTopics) {
+			*roundRobinTopicIndex = 0
 		}
-		defaultDestinationTopic = discoveredTopics[roundRobinTopicIndex]
+		curTopicIndex = *roundRobinTopicIndex
+		defaultDestinationTopic = discoveredTopics[curTopicIndex]
 	case DISTRIBUTION_STRATEGY_REGEX:
 		regexMatchedGroups := config.DistributionRegex.FindStringSubmatch(msg)
 		if config.DistributionRegexGroupIndex < len(regexMatchedGroups) {
 			defaultDestinationTopic = regexMatchedGroups[config.DistributionRegexGroupIndex]
 		} else {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_WARN, Message:fmt.Sprint("WARN: The requested distribution strategy is regex but the regex group index is", config.DistributionRegexGroupIndex, "which is equal to or greater than the number of groups found by the regex `", config.DistributionRegex, "' on message", msg, "which resulted in this array of matched groups", regexMatchedGroups)})
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_WARN, MessageFormat:"WARN: The requested distribution strategy is regex but the regex group index is %v which is equal to or greater than the number of groups found by the regex `%v' on message %v which resulted in this array of matched groups %v"}, config.DistributionRegexGroupIndex, config.DistributionRegex, msg, regexMatchedGroups)
 		}
 	}
 	return defaultDestinationTopic
 }
 
-func discoverTopics(config Config, kafkaConsumer kafka.Consumer, discoveredTopics []string) []string {
-	//3. If time_since_last_topics_discovery > KafkaPostman_TOPICS_DISCOVERY_INTERVAL {
-	//      switch KafkaPostman_TOPICS_DISCOVERY_METHOD {
-	//         case TOPICS_TOPIC:
-	//            uniqueMessagesOnly := true
-	//            topics = pullAllMessagesFromTopic(KafkaPostman_TOPICS_KAFKA_TOPIC, uniqueMessagesOnly)
-	//         case REGEX:
-	//            uniqueMessagesOnly := true
-	//            topicsRaw := kafka.GetAllTopics()
-	//            topicsNew := make([]string, 0)
-	//            for _, topic := topicsRaw {
-	//               if regex.match(KafkaPostman_TOPICS_DISCOVERY_REGEX, topic) {
-	//                  topicsNew = topicsNew.append(topic)
-	//               }
-	//            }
-	//            topics = topicsNew
-	//      }
-	//   }
-    CUR_FUNCTION := "discoverTopics"
+func discoverTopics(config Config, kafkaConsumer kafka.Consumer, discoveredTopics []string, topicsTopicReader *kafka.Consumer) (topicsDiscovered []string, allKafkaTopics []string) {
+    //CUR_FUNCTION := "discoverTopics"
+    allKafkaTopics = getAllTopicNamesFromKafka(kafkaConsumer, config)
 	tmpTopicsList := make([]string, 0, 0)
 	switch config.DiscoveryMethod {
 	case DISCOVERY_METHOD_REGEX:
-		tmpTopicsList = discoverTopicsByRegex(kafkaConsumer, config, tmpTopicsList)
+		tmpTopicsList = discoverTopicsByRegex(allKafkaTopics, config)
 	case DISCOVERY_METHOD_MANUAL:
 		if len(config.DiscoveryManualTopicsList) > 0 {
 			tmpTopicsList = strings.Split(config.DiscoveryManualTopicsList, config.DiscoveryManualTopicsListSeparator)
 		}
 	case DISCOVERY_METHOD_TOPICS_TOPIC:
-		//TODO: Get all topics from the topics topic (kafka-cat?)
+		//TODO: Test this code... (-: (prepare first multiple pollers that will send the topic names to the topics topic)
+		tmpTopicsList = discoverTopicsByTopicsTopic(config, kafkaConsumer, topicsTopicReader)
 	default:
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, Message:"ERROR: Unknown topics discovery method. LEAVING"})
-		os.Exit(7)
+		panic("Unknown topics discovery method. LEAVING")
 	}
 	discoveredTopics = tmpTopicsList
-	LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, Message:"Discovered the following topics: " + fmt.Sprintf("%v", discoveredTopics)})
-	return discoveredTopics
+
+	//Topics validation for DISCOVERY_METHOD_REGEX and DISTRIBUTION_STRATEGY != DISTRIBUTION_STRATEGY_REGEX
+	validatedTopicsList := make([]string, 0, 0)
+	if config.DiscoveryMethod == DISCOVERY_METHOD_REGEX && config.DistributionStrategy != DISTRIBUTION_STRATEGY_REGEX {
+		for _, discoveredTopic := range tmpTopicsList {
+			if (validateDestinationTopic(discoveredTopic, allKafkaTopics, config)) {
+				validatedTopicsList = append(validatedTopicsList, discoveredTopic)
+			}
+		}
+		discoveredTopics = validatedTopicsList
+	}
+	return
 }
 
-func discoverTopicsByRegex(kafkaConsumer kafka.Consumer, config Config, tmpTopicsList []string) []string {
-	CUR_FUNCTION := "discoverTopicsByRegex"
+func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, topicsTopicReader *kafka.Consumer) []string {
+	CUR_FUNCTION := "discoverTopicsByTopicsTopic"
+	tmpTopicsList := make([]string, 0, 0)
+	if topicsTopicReader == nil {
+		topicsTopicReaderObj := generateConsumer(config.DiscoveryTopicsTopicServerHost, config.DiscoveryTopicsTopicGroupId, config.DiscoveryTopicsTopicClientId, KAFKA_DEFAULT_OFFSET_BEGINNING, config.DiscoveryTopicsTopic)
+		topicsTopicReader = &topicsTopicReaderObj
+	}
+	discoveryStarted := time.Now()
+	sortableTopicsList := make([]SortableTopicsListItem, 0, 0)
+	jsonTopicIndexParseFailed := false
+	for {
+		msg, err := kafkaConsumer.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Microsecond)
+		if err != nil {
+			if err.Error() == kafka.ErrTimedOut.String() {
+				//These are probably all the topics published for now
+				break
+			} else {
+				//Log error and attempt to recover...
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_ERROR, MessageFormat: "Topics topic discoverer consumer error: %v (%v)"}, err, msg)
+				if len(tmpTopicsList) > 0 {
+					//If some topics were discovered - we'll continue with them
+					break
+				} else {
+					//otherwise, we'll remain here and try to discover topics until timeout will kick in
+				}
+			}
+		} else {
+			topicsTopicMessage := string(msg.Value)
+			topicsTopicMessageIsTopicName := false
+
+			if config.TopicsTopicMayContainJson {
+				var topicsTopicObject map[string]interface{}
+				e := json.Unmarshal([]byte(topicsTopicMessage), &topicsTopicObject)
+				if e == nil {
+					//If this is a JSON, extract topic name from message
+					topicIndexInt, topicIndexIsNotInt := topicsTopicObject[config.TopicsTopicSortByJsonField].(int)
+					if jsonTopicIndexParseFailed || topicIndexIsNotInt {
+						if !jsonTopicIndexParseFailed {
+							LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_WARN, MessageFormat: "Failed to parse the topic index from the JSON found on the topics topic. The list of topics will NOT be sorted."})
+							jsonTopicIndexParseFailed = true
+						}
+						tmpTopicsList = append(tmpTopicsList, topicsTopicMessage)
+					} else {
+						if topicName, ok := topicsTopicObject[config.TopicsTopicTopicNameJsonField]; ok {
+							topicNameString := fmt.Sprintf("%v", topicName)
+							if len(topicNameString) > 0 && topicNameString != "<nil>" {
+								sortableTopicsList = append(sortableTopicsList, SortableTopicsListItem{
+									TopicName:  fmt.Sprintf("%v", topicNameString),
+									TopicIndex: topicIndexInt,
+								})
+							} else {
+								panic("ERROR: The topic name extracted from the JSON retrieved from the topics topic is either null or empty. CANNOT CONTINUE.")
+							}
+						} else {
+							panic("ERROR: The field specified as the field that contains the topic name in the JSON objects sent to the topics topic doesn't exist in this JSON. CANNOT CONTINUE.")
+						}
+					}
+				} else {
+					//If we received an error while parsing the json we'll assume it's not a JSON but a raw topic name
+					topicsTopicMessageIsTopicName = true
+				}
+			} else {
+				//If it's not JSON it's probably a raw topic name
+				topicsTopicMessageIsTopicName = true
+			}
+
+			if topicsTopicMessageIsTopicName {
+				if !stringInSlice(topicsTopicMessage, tmpTopicsList) {
+					tmpTopicsList = append(tmpTopicsList, topicsTopicMessage)
+				} else {
+					//Keeping the list unique - doing nothing here
+				}
+			}
+		}
+
+		if time.Now().Sub(discoveryStarted).Milliseconds() > config.DiscoveryTopicsTopicMaxWaitForTopics {
+			//Prevent the loop from running forever if the consumers will keep sending topic names to the topics topic at a high rate
+			break
+		}
+	}
+
+	if config.TopicsTopicMayContainJson && !jsonTopicIndexParseFailed && len(sortableTopicsList) > 0 {
+		if config.TopicsTopicSortByJsonFieldAscending {
+			sort.Sort(SortableTopicsListItemsDesc(sortableTopicsList))
+		} else {
+			sort.Sort(SortableTopicsListItemsAsc(sortableTopicsList))
+		}
+	}
+	return tmpTopicsList
+}
+
+func discoverTopicsByRegex(allKafkaTopics []string, config Config) []string {
+	//CUR_FUNCTION := "discoverTopicsByRegex"
+	tmpTopicsList := make([]string, 0, 0)
+	for _, kafkaTopic := range allKafkaTopics {
+		if config.DiscoveryRegex.Match([]byte(kafkaTopic)) {
+			tmpTopicsList = append(tmpTopicsList, kafkaTopic)
+		}
+	}
+
+	return tmpTopicsList
+}
+
+func getAllTopicNamesFromKafka(kafkaConsumer kafka.Consumer, config Config) []string {
+	//CUR_FUNCTION := "getAllTopicNamesFromKafka"
+	tmpTopicsList := make([]string, 0, 0)
 	kafkaAdminClient, err := kafka.NewAdminClientFromConsumer(&kafkaConsumer)
 	if err == nil {
 		topicsInfo, topicsCollectionErr := kafkaAdminClient.GetMetadata(nil, true, -1)
 		if topicsCollectionErr == nil {
 			for _, topic := range topicsInfo.Topics {
-				if config.DiscoveryRegex.Match([]byte(topic.Topic)) {
-					tmpTopicsList = append(tmpTopicsList, topic.Topic)
-				}
+				tmpTopicsList = append(tmpTopicsList, topic.Topic)
 			}
 		} else {
-			LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, Message:fmt.Sprint("ERROR: Failed to get a list of all topics on this Kafka cluster. (The following error was thrown from kafkaAdminClient.GetMetadata). ", topicsCollectionErr)})
-			os.Exit(6)
+			panic("Failed to get a list of all topics on this Kafka cluster. (The following error was thrown from kafkaAdminClient.GetMetadata). " + fmt.Sprintf("%v", topicsCollectionErr))
 		}
 	} else {
-		LogForwarder(LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, Message:fmt.Sprint("ERROR: Failed to get a list of all topics on this Kafka cluster. (The following error was thrown from kafkaAdminClient.GetMetadata). ", err)})
-		os.Exit(6)
+		panic("Failed to get a list of all topics on this Kafka cluster. (The following error was thrown from kafkaAdminClient.GetMetadata)." + fmt.Sprintf("%v", err))
 	}
+
 	return tmpTopicsList
 }
