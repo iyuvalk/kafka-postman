@@ -20,16 +20,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/configHandler.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose/sample_data_poller/topics_topic_reporter.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/configHandler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose/kafka-postman/kafka-postman" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -164,9 +161,17 @@
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2/0.27.1920.1053@0.27.1920.1053" timestamp="1591810552827" />
-    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1593323198691">
+    <state x="686" y="167" width="538" height="780" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1594186352835">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1593323198691" />
+    <state x="686" y="167" width="538" height="780" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053@0.27.1920.1053" timestamp="1594186352835" />
+    <state x="568" y="316" width="1603" height="1009" key="dock-window-1" timestamp="1594186387226">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="568" y="316" width="1603" height="1009" key="dock-window-1/0.27.1920.1053@0.27.1920.1053" timestamp="1594186387226" />
+    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1594226037898">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1594226037898" />
   </component>
 </project>

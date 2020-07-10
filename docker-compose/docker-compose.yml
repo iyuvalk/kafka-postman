@@ -76,6 +76,10 @@ services:
         condition: any
     environment:
       TOPIC2LISTEN_TO: "bugs_bunny"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 100
+      REPORT_INTERVAL: 10
 
   data_poller2:
     container_name: "kafka_postman_data-poller-daffy_duck"
@@ -89,6 +93,27 @@ services:
         condition: any
     environment:
       TOPIC2LISTEN_TO: "daffy_duck"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 50
+      REPORT_INTERVAL: 10
+
+  data_poller3:
+    container_name: "kafka_postman_data-poller-sylvester"
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "sylvester"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 1
+      REPORT_INTERVAL: 10
 
   manhole:
     container_name: "kafka_postman_manhole"

@@ -16,26 +16,27 @@ type Config struct {
 	DiscoveryManualTopicsList               string
 	DiscoveryManualTopicsListSeparator      string
 	DistributionRegex                       *regexp.Regexp
-	DistributionRegexString                 string
-	DistributionRegexGroupIndex             int
-	DistributionStrategy                    string
-	TopicsDistributionRegexGroupIndex       int
-	TopicPinningEnabled                     bool
-	TopicPinningRedisAddresses              []string
-	TopicPinningRedisDbNo                   int
-	TopicPinningRedisDbPassword             string
-	TopicPinningRedisClusterName            string
-	TopicPinningHashSlidingExpiryMs         int64
-	DiscoveryIntervalMs                     int64
-	LoggingFormat                           string
-	LogLevel                                LogLevel
-	KafkaConsumerClientId                   string
-	KafkaConsumerGroupId                    string
-	KafkaConsumerDefaultOffset              string
-	KafkaConsumerServerHost                 string
-	KafkaProducerClientId                   string
-	KafkaProducerServerHost                 string
-	DiscoveryTopicsTopic                    string
+	DistributionRegexString           string
+	DistributionRegexGroupIndex       int
+	DistributionStrategy              string
+	TopicsDistributionRegexGroupIndex int
+	TopicPinningEnabled               bool
+	TopicPinningRedisAddresses        []string
+	TopicPinningRedisDbNo             int
+	TopicPinningRedisDbPassword       string
+	TopicPinningRedisClusterName      string
+	TopicPinningHashSlidingExpiryMs   int64
+	DiscoveryIntervalSecs             int64
+	LoggingFormat                     string
+	LogLevel                          LogLevel
+	KafkaConsumerServerHost           string
+	KafkaConsumerClientId             string
+	KafkaConsumerGroupId              string
+	KafkaConsumerDefaultOffset        string
+	KafkaProducerServerHost           string
+	KafkaProducerClientId             string
+	KafkaProducerGroupId              string
+	DiscoveryTopicsTopic              string
 	DiscoveryTopicsTopicServerHost          string
 	DiscoveryTopicsTopicGroupId             string
 	DiscoveryTopicsTopicClientId            string
@@ -89,9 +90,10 @@ func getConfig() Config {
 		DEFAULT_LOGGING_FORMAT                             = ""
 		DEFAULT_LOG_LEVEL                                  = LogLevel_INFO
 		DEFAULT_KAFKA_CONSUMER_SERVER_HOST                 = "kafka:9092"
-		DEFAULT_KAFKA_PRODUCER_SERVER_HOST                 = "kafka:9092"
 		DEFAULT_KAFKA_CONSUMER_GROUP_ID                    = "kafka-postman"
 		DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET              = KAFKA_DEFAULT_OFFSET_END
+		DEFAULT_KAFKA_PRODUCER_SERVER_HOST                 = "kafka:9092"
+		DEFAULT_KAFKA_PRODUCER_GROUP_ID                    = "kafka-postman"
 		DEFAULT_DISCOVERY_TOPICS_TOPIC                     = "consumers"
 		DEFAULT_SOURCE_TOPIC                               = "metrics"
 		DEFAULT_DEFAULT_TARGET_TOPIC                       = "_unknown_recipient"
@@ -123,12 +125,13 @@ func getConfig() Config {
 	return Config{
 		LoggingFormat:                           autoSelectConfig(DEFAULT_LOGGING_FORMAT, LOGGING_FORMAT, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		LogLevel:                                LogLevel(autoSelectConfig(strconv.FormatInt(DEFAULT_LOG_LEVEL, 10), LOG_LEVEL, []ConfigValidationMode{ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
-		KafkaConsumerClientId:                   autoSelectConfig(DEFAULT_KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		KafkaConsumerServerHost:                 autoSelectConfig(DEFAULT_KAFKA_CONSUMER_SERVER_HOST, KAFKA_CONSUMER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaProducerClientId:                   autoSelectConfig(DEFAULT_KAFKA_PRODUCER_CLIENT_ID, KAFKA_PRODUCER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
+		KafkaConsumerClientId:                   autoSelectConfig(DEFAULT_KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		KafkaConsumerGroupId:                    autoSelectConfig(DEFAULT_KAFKA_CONSUMER_GROUP_ID, KAFKA_CONSUMER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		KafkaConsumerDefaultOffset:              autoSelectConfig(DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET, KAFKA_CONSUMER_DEFAULT_OFFSET, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, KAFKA_DEFAULT_OFFSET_OPTIONS).ValueString,
 		KafkaProducerServerHost:                 autoSelectConfig(DEFAULT_KAFKA_PRODUCER_SERVER_HOST, KAFKA_PRODUCER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
+		KafkaProducerClientId:                   autoSelectConfig(DEFAULT_KAFKA_PRODUCER_CLIENT_ID, KAFKA_PRODUCER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
+		KafkaProducerGroupId:                    autoSelectConfig(DEFAULT_KAFKA_PRODUCER_GROUP_ID, KAFKA_PRODUCER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		AutoCreateMissingTopics:                 bool(autoSelectConfig(DEFAULT_AUTO_CREATE_MISSING_TOPICS, AUTO_CREATE_MISSING_TOPICS, []ConfigValidationMode{ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
 		TopicPinningRegex:                       autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX, TOPIC_PINNING_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
 		TopicPinningRegexString:                 autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX, TOPIC_PINNING_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_STRING, []string{}).ValueString,
@@ -139,7 +142,7 @@ func getConfig() Config {
 		DiscoveryRegex:                          autoSelectConfig(DEFAULT_DISCOVERY_REGEX, DISCOVERY_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
 		DiscoveryRegexString:                    autoSelectConfig(DEFAULT_DISCOVERY_REGEX, DISCOVERY_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_STRING, []string{}).ValueString,
 		DiscoveryTopicsTopic:                    autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC, DISCOVERY_TOPICS_TOPIC, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryIntervalMs:                     int64(autoSelectConfig(strconv.FormatInt(DEFAULT_TOPICS_DISCOVERY_INTERVAL, 10), DISCOVERY_INTERVAL, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
+		DiscoveryIntervalSecs:                   int64(autoSelectConfig(strconv.FormatInt(DEFAULT_TOPICS_DISCOVERY_INTERVAL, 10), DISCOVERY_INTERVAL, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
 		DistributionStrategy:                    autoSelectConfig(DEFAULT_DISTRIBUTION_STRATEGY, DISTRIBUTION_STRATEGY, []ConfigValidationMode{ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, TOPICS_DISTRIBUTION_STRATEGIES).ValueString,
 		DistributionRegex:                       autoSelectConfig(DEFAULT_DISTRIBUTION_REGEX, DISTRIBUTION_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
 		DistributionRegexString:                 autoSelectConfig(DEFAULT_DISTRIBUTION_REGEX, DISTRIBUTION_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_STRING, []string{}).ValueString,

@@ -105,7 +105,7 @@ func main() {
 	//2. for message_idx, message in kafka.GetMessages(KafkaPostman_SOURCE_TOPIC) {
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat:"Connecting to the Kafka..."})
 	kafkaConsumer := generateConsumer(config.KafkaConsumerServerHost, config.KafkaConsumerGroupId, config.KafkaConsumerClientId, config.KafkaConsumerDefaultOffset, config.SourceTopic)
-	kafkaProducer := generateProducer(config.KafkaProducerServerHost, config.KafkaConsumerGroupId, config.KafkaProducerClientId)
+	kafkaProducer := generateProducer(config.KafkaProducerServerHost, config.KafkaProducerGroupId, config.KafkaProducerClientId)
 	for {
 		//3. Get a message from Kafka
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Starting to wait for messages from kafka..."})
@@ -121,11 +121,11 @@ func main() {
 			timeHandlingStarted := time.Now()
 			msgValue := string(msg.Value)
 
-			//3. (Re-)Discover topics if needed
+			//4. (Re-)Discover topics if needed
 			var timeDiscoveryTaken time.Duration
-			if timeSinceLastDiscovery := time.Now().Unix() - lastTopicsDiscoveryTimestamp; timeSinceLastDiscovery > config.DiscoveryIntervalMs || len(discoveredTopics) == 0 || len(allKafkaTopicsSeen) == 0 {
+			if timeSinceLastDiscovery := time.Now().Unix() - lastTopicsDiscoveryTimestamp; timeSinceLastDiscovery > config.DiscoveryIntervalSecs || len(discoveredTopics) == 0 || len(allKafkaTopicsSeen) == 0 {
 				timeDiscoveryStarted := time.Now()
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Re-discovering destination topics. (timeSinceLastDiscovery: %v, config.DiscoveryIntervalMs: %v, len(discoveredTopics): %v)"}, timeSinceLastDiscovery, config.DiscoveryIntervalMs, len(discoveredTopics))
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Re-discovering destination topics. (timeSinceLastDiscovery: %v, config.DiscoveryIntervalSecs: %v, len(discoveredTopics): %v)"}, timeSinceLastDiscovery, config.DiscoveryIntervalSecs, len(discoveredTopics))
 				discoveredTopics, allKafkaTopicsSeen = discoverTopics(config, kafkaConsumer, discoveredTopics, topicsTopicReader)
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Discovered the following topics: %v"}, discoveredTopics)
 				if config.AutoDestinationTopicFilteringEnabled {
@@ -139,13 +139,13 @@ func main() {
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Topics discovery ran. Time taken: %v"}, timeDiscoveryTaken)
 			}
 
-			//4. Decide on a default destination topic (based on distribution strategy)
+			//5. Decide on a default destination topic (based on distribution strategy)
 			timeDestinationTopicDecisionStarted := time.Now()
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Getting the default destination topic based on the distribution strategy..."})
 			defaultDestinationTopic := getDefaultDestinationTopic(config, discoveredTopics, &roundRobinTopicIndex, msgValue)
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Currently, the destination topic is: %v"}, defaultDestinationTopic)
 
-			//5. Handle topic pinning (if enabled)
+			//6. Handle topic pinning (if enabled)
 			if config.TopicPinningEnabled {
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Handling topic pinning..."})
 				defaultDestinationTopic = handleTopicPinning(config, defaultDestinationTopic, msgValue)
@@ -161,7 +161,7 @@ func main() {
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Will forward current message to topic %s"}, defaultDestinationTopic)
 			}
 
-			//6. Topic validation - For DISTRIBUTION_STRATEGY_REGEX, DISCOVERY_METHOD_MANUAL or DISCOVERY_METHOD_TOPICS_TOPIC (in these configuration the service DYNAMICALLY selects a topic based on information that is not provided by Kafka)
+			//7. Topic validation - For DISTRIBUTION_STRATEGY_REGEX, DISCOVERY_METHOD_MANUAL or DISCOVERY_METHOD_TOPICS_TOPIC (in these configuration the service DYNAMICALLY selects a topic based on information that is not provided by Kafka)
 			if config.DistributionStrategy == DISTRIBUTION_STRATEGY_REGEX || config.DiscoveryMethod == DISCOVERY_METHOD_MANUAL || config.DiscoveryMethod == DISCOVERY_METHOD_TOPICS_TOPIC {
 				//If the dest topic is valid proceed, otherwise resort to configured default topic
 				if !validateDestinationTopic(defaultDestinationTopic, allKafkaTopicsSeen, config) {
@@ -170,7 +170,7 @@ func main() {
 				}
 			}
 
-			//7. kafka.PublishMessage(selected_topic, message)
+			//8. kafka.PublishMessage(selected_topic, message)
 			deliveryChan := make(chan kafka.Event)
 			kafkaProducer.Produce(&kafka.Message{
 				TopicPartition: kafka.TopicPartition{Topic: &defaultDestinationTopic, Partition: kafka.PartitionAny},
@@ -274,7 +274,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat:"Creating the sync object..."})
 		sync := redis.SyncCtx{sender} // wrapper for synchronous api
 
-		//4.1. Create a fingerprint of the message by hashing the text extracted by the regex groups
+		//6.i.c. Create a fingerprint of the message by hashing the text extracted by the regex groups
 		if config.LogLevel >= LogLevel_VERBOSE {
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat:"Successfully connected to redis. Calculating a message fingerprint for the current message... (msg: `%v', config.TopicPinningRegex: %v, config.TopicPinningRegexGroupIndexes: %v)"}, msg, config.TopicPinningRegex, config.TopicPinningRegexGroupIndexes)
 		} else {
@@ -290,7 +290,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 		messageFingerprint := fmt.Sprintf("%x", md5.Sum(messageFingerprintRawBytes))
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Created the following fingerprint for the current message. (fingerprint: %v, message: `%v')"}, messageFingerprint, msg)
 
-		//4.2. Try to find the fingerprint on Redis by using the fingerprint as the key
+		//6.i.d. Try to find the fingerprint on Redis by using the fingerprint as the key
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Trying to find the message fingerprint on redis..."})
 		res := sync.Do(ctx, "GET", messageFingerprint)
 		if err := redis.AsError(res); err == nil && res != nil {
@@ -305,7 +305,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"The fingerprint was not found on redis. Selecting the topic found as the default topic so far (by other methods) for the current message. (err: %v, res: %v)"}, err, res)
 		}
 
-		//4.3. Write the value of defaultDestinationTopic to Redis under the current fingerprint to either reset the fingerprint sliding expiration (if already exists) or to cache it (if it's new)
+		//6.i.e. Write the value of defaultDestinationTopic to Redis under the current fingerprint to either reset the fingerprint sliding expiration (if already exists) or to cache it (if it's new)
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Updating the selected topic for the current message fingerprint to either reset the sliding expiration if already exist or to set the fingerprint for other similar messages if not already exist..."})
 		res = sync.Do(ctx, "SET", messageFingerprint, defaultDestinationTopic, "PX", config.TopicPinningHashSlidingExpiryMs)
 		if err := redis.AsError(res); err != nil {
@@ -337,7 +337,10 @@ func getDefaultDestinationTopic(config Config, discoveredTopics []string, roundR
 		} else {
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_WARN, MessageFormat:"WARN: The requested distribution strategy is regex but the regex group index is %v which is equal to or greater than the number of groups found by the regex `%v' on message %v which resulted in this array of matched groups %v"}, config.DistributionRegexGroupIndex, config.DistributionRegex, msg, regexMatchedGroups)
 		}
+	default:
+		panic("Unknown message distribution method. LEAVING")
 	}
+
 	return defaultDestinationTopic
 }
 
@@ -384,7 +387,7 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 	sortableTopicsList := make([]SortableTopicsListItem, 0, 0)
 	jsonTopicIndexParseFailed := false
 	for {
-		msg, err := kafkaConsumer.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Microsecond)
+		msg, err := kafkaConsumer.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Millisecond)
 		if err != nil {
 			if err.Error() == kafka.ErrTimedOut.String() {
 				//These are probably all the topics published for now
@@ -448,7 +451,7 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 			}
 		}
 
-		if time.Now().Sub(discoveryStarted).Milliseconds() > config.DiscoveryTopicsTopicMaxWaitForTopics {
+		if time.Now().Sub(discoveryStarted).Milliseconds() > config.DiscoveryTopicsTopicMaxDiscoveryTimeout {
 			//Prevent the loop from running forever if the consumers will keep sending topic names to the topics topic at a high rate
 			break
 		}

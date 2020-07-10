@@ -1,59 +1,138 @@
 # kafka-postman
 Your kafka topics organizer
 
-## The problem we came to solve
-When I wrote the Pensu service for metrics anomaly detection and prediction, I quickly realized that since that this service reads the metrics from a Kafka topic and outputs its predictions and anomaly scores to another Kafka topic, it will need some way to scale horizontally. Since that just adding more instances of the service cannot guarantee that once a service starts to get a specific metric it will continue to receive all the datapoints for that metric from that moment on, I decided to write this service to help distribute data from one source topic to several destination topics based on some configurable logic.
+## The problem I came to solve
+When I wrote the [Pensu](https://github.com/iyuvalk/pensu) service for metrics anomaly detection and prediction, I quickly realized that since this service reads the metrics from a Kafka topic and outputs its predictions and anomaly scores to another Kafka topic, it will need some way to scale horizontally. Since just adding more instances of the service cannot guarantee that once a service starts to get a specific metric it will continue to receive all the datapoints for that metric from that moment on, I decided to write this service to help distribute data from one source topic to several destination topics based on some configurable logic.
 
-## The basic algorithm
-This service comprises two steps that are running simultaneously on different threads:
-1. Topics discovery
-1.1. Discovery method is set to REGEX:
-1.1.1. Every n seconds (configurable by an environment variable) a list of all available topics will be collected from the destination Kafka broker.
-1.1.1. Every topic name that matches a configured regex (configurable by an environment variable) will be considered as discovered and will be stored in Redis by using the following key format "$KafkaPostman_REDIS_TOPICS_PREFIX-$TopicName" without an expiry date for the topics' selection phase.
-1.1. Discovery method is set to TOPICS_TOPIC:
-1.1.1. The discovery thread will launch a kafka consumer that will be configured to consume from the topic specified by a relevant environment variable.
-1.1.1. For every topic consumed, the thread will store it in Redis by using the following key format "$KafkaPostman_REDIS_TOPICS_PREFIX-$TopicName" with an expiry time set by $KafkaPostman_REDIS_TOPICS_SLIDING_EXPIRY_MS (if already exist it will reset its expiry time). This mode allows the service to detect dead consumers and start sending the data that was previously consumed by them to another consumer.
-1.1 
-1. Topics selection - Runs whenever a message is consumed from the source topic
-1.1 Whenever a message is consumed from the source topic, if the topics regex selection mode is turned on (configurable by an environment variable) a configured regex will be used to extract part of the message, this part will be used to check against Redis to find a topic for such messages, if such topic name is found, the message will be pushed to that topic. If no topic was found on Redis for that message part, the service will choose a topic from the list of discovered topics (the topics that were saved to redis using the specified prefix) randomly or by using round-robin logic (configurable by an environment variable) and the message part will be sent with the selected topic to Redis to allow for similar messages (by the regex) to be sent to the same topic. If the topics regex selection mode is turned off, the service will choose a topic from the list of discovered topics (the topics that were saved to redis using the specified prefix) randomly or by using round-robin logic (configurable by an environment variable) and the message will be sent to the selected topic.
+## Common or possible use cases for this tool (If you have more ideas for use cases, or you would like to share your use case with me - I'd love to know and add them here)
+1. Pull data from one topic and distribute it evenly between multiple destination topics on the same or on other kafka cluster by using round-robin or random logic as a mean for load balancing between consumers.
+   1. Examples:
+      1. Use one kafka cluster for handling connections to producers and for storing incoming data to disk and another cluster for consumers to split the load (and perhaps use different, more cost-effective disks) and use Kafka-Postman to distribute the data from the incoming topic on one cluster to various destination topics on the destination cluster. 
+1. Pull data from one topic, use a regex to extract the destination topic of the pulled data and send the data to that topic.
+   1. Examples:
+      1. Pull graphite metrics like 'acme.servers.eu-west-1.webservers.public_website.frontend.cpu.usage.percent 50 1593772056' and distribute them between multiple consumers (maybe for ML analyzers) by function (i.e. webservers, databases, AD, etc.), by component (i.e cpu, disk, network, memory, etc.), by location (i.e. eu-west-1, us-east-1, etc.) or by any other criteria. 
+1. Pull data from a kafka topic and distribute it evenly between multiple topics but still keep similar messages together in the same destination topic.
+   1. Examples:
+      1. Pull metrics and send them to multiple analyzers as even as possible while keeping metrics from the same server in the same destination topic.
+1. Pull data from a kafka topic and distribute it to other topics selected from all topics on the Kafka cluster by trying to match them against a regex.
+   1.Examples:
+      1. Your application handles three different types of data: tweets, posts and comments, each type has a topic to which the raw data is sent (i.e. tweets-in) and multiple topics used by content processors (i.e. tweets-processor1, tweets-processor2 ...). You use this tool in three different processes, one for each data type.
+1. Pull data from one topic and distribute it between multiple destination topics while detecting "dead" or unresponsive consumers and in which case data that should have been sent to the "dead" consumers will be distributed among the remaining consumers.
+   1. Examples:
+      1. You have metrics coming in on one source topic and multiple consumers (that you built or have access to their source code) that process the data , and you would like the metrics to be distributed between consumers as evenly as possible while keeping similar metrics together (like 3 above) while still detecting "dead" consumers and redistributing the data among the other consumers.  
+1. Same as 5 above except messages should be distributed based on a number generated by the consumers rather than just being evenly distributed among consumers.
+   1. Examples:
+      1. Distribute messages between consumers based on the load on each consumer while keeping similar messages in the same consumer's topic and detecting "dead" consumers and redistributing the data among the other consumers.
 
-### This service is controlled by the folowing environment variables:
-```
-KafkaPostman_TOPICS_DISCOVERY_METHOD - A strategy for discovering new destination topics. Can be one of: REGEX, TOPICS_TOPIC (by using a topic that all consumers periodically send the topic they're listening on to make sure the data is sent to topics that are read by other processes) - Defaults to "REGEX"
-
-KafkaPostman_TOPICS_DISCOVERY_REGEX - If KafkaPostman_TOPICS_DISCOVERY_METHOD is set to REGEX use this to set a regex that we'll attempt to match each topic on kafka periodically and add those who matched it to the list of discovered topics
-
-KafkaPostman_TOPICS_SELECTION_REGEX - A regex that will be used to extract a portion of the data that arrived in the source topic. If KafkaPostman_TOPICS_DISTRIBUTION_STRATEGY is set to REGEX the extracted string will be used as a destination topic, otherwise it will be matched against previously seen data in the redis cache and if matched the same topic that was used for that data will be used again for the current data.
-
-KafkaPostman_TOPICS_DISTRIBUTION_STRATEGY - A strategy that will be used to select a destination topic once a new type of data (or no regex was defined). Can be one of: ROUND_ROBIN, RANDOM, REGEX (Will use the selected part of the data matched by the first group selection in the regex as destination topic)
-
-KafkaPostman_REDIS_TOPICS_PREFIX - A prefix that will be added to every topic that has been discovered. Using this prefix will allow the message distributor to get a list of all topics discovered.
-
-KafkaPostman_REDIS_TOPICS_SLIDING_EXPIRY_MS - A number of milliseconds that a discovered topic or a message part and the topic assigned to it will be saved in redis for since the last time they were discovered/saved.
-
-KafkaPostman_TOPICS_DISCOVERY_INTERVAL - The time in milliseconds between each topics discovery cycle when the KafkaPostman_TOPICS_DISCOVERY_METHOD variable is set to REGEX.
-
-KafkaPostman_LOGGING_FORMAT - The logging format that will be used. The default is: timestamp=%s;module=smart-onion_%s;method=%s;severity=%s;state=%s;metric/metric_family=%s;exception_msg=%s;exception_type=%s;message=%s
-
-KafkaPostman_KAFKA_CONSUMER_CLIENT_ID - The client ID that will be used when consuming messages from the source server. Can include the placeholders such as "{{#instance_id}}" and "{{#time_started}}" that are automatically resolved to the instance id (a unique identifier that is generated when the service launches) and to the unix time on which the service started. Accordingly.
-
-KafkaPostman_KAFKA_CONSUMER_SERVER - The server (such as localhost:9020) from which the service will consume the source data.
-
-KafkaPostman_KAFKA_PRODUCER_CLIENT_ID - The client ID that will be used when sending messages to the destination server. Can include the placeholders such as "{{#instance_id}}" and "{{#time_started}}" that are automatically resolved to the instance id (a unique identifier that is generated when the service launches) and to the unix time on which the service started. Accordingly.
-
-KafkaPostman_KAFKA_PRODUCER_SERVER - The server (such as localhost:9020) to which the service will connect to publish the data in the relevant topics.
-
-KafkaPostman_TOPICS_DISCOVERY_TOPIC - The Kafka topic that will be used to by the service to discover the available destination topics if KafkaPostman_TOPICS_DISCOVERY_METHOD is set to TOPICS_TOPIC
-
-KafkaPostman_SOURCE_TOPIC - The Kafka topic that will be used by the service to pull data from (and to distribute that data to the available destination topics)
-```
-## Example use case
-For example, here's the case that drove me to develop this project:
-The pensu project is comprised of a Docker/Kubernetes ready service that is designed to pull metrics from a Kafka topic and then use the HTM algorithm by Numenta to generate predictions and anomaly scores and push them to another Kafka topic. Both the metrics, the predictions and the anomaly scores are written in the Graphite line format, like this: 
+## The use case that led me to develop this project
+The [Pensu](https://github.com/iyuvalk/pensu) project that I've built comprised of a Docker/Kubernetes ready service that is designed to pull metrics from a Kafka topic and then use the HTM algorithm by Numenta to generate predictions and anomaly scores and push them to another Kafka topic. Both the metrics, the predictions and the anomaly scores are written in the Graphite line format, like this: 
 ```
 acme.it.servers.webservers.public_website1.cpu.user_time <value> <timestamp_in_unixtime>
 ```
 
 Since that this service pulls the metrics data from a single topic, if the number of metrics or their sample rate will increase, it would have to have the ability to scale, but if you'd simply run multiple instances of the pensu service to share the load and they would all pull from the same kafka topic, then some of the datapoints for the same metric will be consumed by instance A while other datapoints of the same metric will be consumed by other instances. This of course will not allow the pensu services to make accurate predictions and anomaly detections. But, since that pensu is able to be configured to periodically send the topic it is listening on to a Kafka topic, we can install as many instances of this project, kafka-postman, and configure it to discover topics based on a "topics topic" which is the same topic that pensu will report the topic it listens on to, this service will periodically get the topics each pensu instance is listening on, and by using a regex to extract the metric name from the metric line, it will randomly (or by using a round robin logic) select a topic for every newly seen metric and then it will keep sending the all the datapoints of every metric to the same pensu instance. Problem solved!
+Also, since that it is using a sliding cache mechanism, if one of the [Pensu](https://github.com/iyuvalk/pensu) instances dies, it would stop sending the topic on which it is listening on to the "topics topic" and the kafka-postman will eventually select another pensu instance to handle the datapoints of the metrics used to be handled by the now dead pensu instance.
 
-Also, since that it is using a sliding cache mechanism, if one of the pensu instances dies, it would stop sending the topic on which it is listening on to the "topics topic" and the kafka-postman will eventually select another pensu instance to handle the datapoints of the metrics used to be handled by the now dead pensu instance.
+## The basic algorithm
+This service implements the following basic algorithm:
+1. Get config from the environment variables
+1. Connect to source and destination kafka servers (build consumer by using `KAFKA_POSTMAN_KAFKA_CONSUMER_SERVER`, `KAFKA_POSTMAN_KAFKA_CONSUMER_CLIENT_ID`, `KAFKA_POSTMAN_KAFKA_CONSUMER_GROUP_ID` and `KAFKA_POSTMAN_KAFKA_CONSUMER_DEFAULT_OFFSET`. build producer by using `KAFKA_POSTMAN_KAFKA_PRODUCER_SERVER`, `KAFKA_POSTMAN_KAFKA_PRODUCER_CLIENT_ID` and `KAFKA_POSTMAN_KAFKA_PRODUCER_GROUP_ID`)
+1. Pull a message from `KAFKA_POSTMAN_SOURCE_TOPIC` (or wait for a message to arrive)
+1. If needed (according to `KAFKA_POSTMAN_TOPICS_DISCOVERY_INTERVAL` and whether the list of destination topics is empty or not) - (Re-)discover destination topics (based on `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD`)
+   1. If the number of seconds that have passed since the last discovery is greater than the `KAFKA_POSTMAN_TOPICS_DISCOVERY_INTERVAL` or the list of discovered topics or the list of all kafka topics seen is empty, discover destination topics by following the following steps:
+      1. Get all kafka topics from the server specified by `KAFKA_POSTMAN_KAFKA_PRODUCER_SERVER`
+      1. If `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "REGEX":
+         1. Go over all kafka topics and select those which match the regex set by `KAFKA_POSTMAN_DISCOVERY_REGEX`
+         1. Use the result as the destination topics list
+      1. If `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "MANUAL":
+         1. Split the value of `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST` by the character specified in `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR`
+         1. Use the result as the destination topics list
+      1. If `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "TOPICS_TOPIC":
+         1. Create consumer for a topic defined by `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC` using `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_SERVER`, `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_GROUP_ID` and `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_CLIENT_ID` (Using this discovery method is possible if the consuming applications are using this topic to report which topic they are listening on and possibly their current load or priority)
+         1. Consume messages from this topic until either no new messages received within `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_MAX_WAIT_FOR_TOPICS` or the entire discovery process is taking more than `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_MAX_DISCO_TIMEOUT` (in milliseconds, in both cases)
+         1. If the environment variable `KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON` is true 
+            1. If the current message is parsable as JSON:
+               1. Add the current topic to a list of topics and sort indexes by extracting the field specified by `KAFKA_POSTMAN_TOPICS_TOPIC_TOPIC_NAME_JSON_FIELD` as the topic name, and the field specified by `KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD` as the sort index from the JSON. 
+            1. If the current message is not parsable as JSON:
+               1. Switch back to non JSON mode. From now the messages will be parsed as topics. No JSON parsing will be attempted until next topics discovery.
+         1. If the environment variable `KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON` is false
+            1. Add the current message (which is assumed to contain the topic name on which the consumer application is listening on) to a temporary topics list.
+         1. De-duplicate the temporary topics list.
+         1. Use the result as the destination topics list
+      1. Otherwise, panic with the message "Unknown topics discovery method. LEAVING"
+      1. If `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "REGEX" and `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY` is not "REGEX":
+         1. For each topic in the list of discovered topics, do:
+            1. /***** Topic validation methods here ******/
+1. Decide on the selected destination topic (based on `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY`)
+   1. If `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY` is "RANDOM":
+      1. Selects the destination topic at random from the list of all topics found on the destination Kafka cluster.
+   1. If `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY` is "ROUND_ROBIN":
+      1. Selects the destination topic as the next topic in order from the list of all topics found on the destination Kafka cluster. If the current topic is the last topic on the list, the first topic will be selected.
+   1. If `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY` is "REGEX":
+      1. Extracts the destination topic from the current message by using the regex specified by `KAFKA_POSTMAN_DISTRIBUTION_REGEX` and the group index specified by `KAFKA_POSTMAN_DISTRIBUTION_REGEX_GROUP_INDEX` (for example, if the message is "acme.farm1.sylvester.web_servers.frontend1.cpu.usage.system 10 1594225115" and the value `KAFKA_POSTMAN_DISTRIBUTION_REGEX` is "^([a-z]+)\..*" and the value of `KAFKA_POSTMAN_DISTRIBUTION_REGEX_GROUP_INDEX` is 1, the topic that will be selected is "acme")
+   1. Otherwise, panic with the message "Unknown message distribution method. LEAVING".
+1. Handle "topic pinning" if enabled through `KAFKA_POSTMAN_TOPIC_PINNING_ENABLED` (Would keep similar messages in the same destination topic regardless of the selected distribution strategy)
+   1. If `KAFKA_POSTMAN_TOPIC_PINNING_ENABLED` is true:
+      1. If `KAFKA_POSTMAN_REDIS_CLUSTER_NAME` is empty (meaning there is only a single Redis server to communicate with):
+         1. Generates a connection to the Redis server using the first address listed as a JSON string array in `KAFKA_POSTMAN_REDIS_ADDRESSES`, the database number specified in `KAFKA_POSTMAN_REDIS_DB_NO` and the password specified in `KAFKA_POSTMAN_REDIS_DB_PASSWORD`.
+      1. If `KAFKA_POSTMAN_REDIS_CLUSTER_NAME` is not empty:
+         1. Generates a connection to the Redis cluster using all addresses listed as a JSON string array in `KAFKA_POSTMAN_REDIS_ADDRESSES`, the cluster name specified in `KAFKA_POSTMAN_REDIS_CLUSTER_NAME` and the password specified in `KAFKA_POSTMAN_REDIS_DB_PASSWORD`.
+      1. Create a fingerprint of the message by using `KAFKA_POSTMAN_TOPIC_PINNING_REGEX` and the list defined in `KAFKA_POSTMAN_TOPIC_PINNING_REGEX_GROUPS_INDEXES` as integers separated by a comma to extract parts of the message, create a JSON string array of the matching parts and then create an MD5 hash of the JSON string.
+      1. Attempt to find the fingerprint as a key on the Redis server/cluster, if found - Use the value found for that key as the destination topic
+      1. Create/update the value in Redis for this finger print to the currently selected destination topic. Set the expiration of this value in milliseconds to the value of `KAFKA_POSTMAN_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS`. 
+1. Validate the selected destination topic if needed based on the values of `KAFKA_POSTMAN_TOPICS_VALIDATION_WHITELIST`, `KAFKA_POSTMAN_TOPICS_VALIDATION_BLACKLIST`, `KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_WHITELIST`, `KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_BLACKLIST` and `KAFKA_POSTMAN_TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA`
+   1. 
+1. Publish the current message to the currently selected destination topic and then go back to 3.
+
+### The following environment variables control this service:
+```
+KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD                    - A strategy for discovering new destination topics. Can be one of: REGEX, TOPICS_TOPIC (by using a topic that all consumers periodically send the topic they're listening on to make sure the data is sent to topics that are read by other processes) - Defaults to "REGEX"
+KAFKA_POSTMAN_DISCOVERY_REGEX                            - If KafkaPostman_TOPICS_DISCOVERY_METHOD is set to REGEX use this to set a regex that we'll attempt to match each topic on kafka periodically and add those who matched it to the list of discovered topics
+KAFKA_POSTMAN_TOPICS_SELECTION_REGEX                     - A regex that will be used to extract a portion of the data that arrived in the source topic. If KafkaPostman_TOPICS_DISTRIBUTION_STRATEGY is set to REGEX the extracted string will be used as a destination topic, otherwise it will be matched against previously seen data in the redis cache and if matched the same topic that was used for that data will be used again for the current data.
+KAFKA_POSTMAN_DISTRIBUTION_STRATEGY                      - A strategy that will be used to select a destination topic once a new type of data (or no regex was defined). Can be one of: ROUND_ROBIN, RANDOM, REGEX (Will use the selected part of the data matched by the first group selection in the regex as destination topic)
+KAFKA_POSTMAN_REDIS_TOPICS_PREFIX                        - A prefix that will be added to every topic that has been discovered. Using this prefix will allow the message distributor to get a list of all topics discovered.
+KAFKA_POSTMAN_REDIS_TOPICS_SLIDING_EXPIRY_MS             - A number of milliseconds that a discovered topic or a message part and the topic assigned to it will be saved in redis for since the last time they were discovered/saved.
+KAFKA_POSTMAN_TOPICS_DISCOVERY_INTERVAL                  - The time in milliseconds between each topics discovery cycle when the KafkaPostman_TOPICS_DISCOVERY_METHOD variable is set to REGEX.
+KAFKA_POSTMAN_LOGGING_FORMAT                             - The logging format that will be used. The default is: timestamp=%s;module=smart-onion_%s;method=%s;severity=%s;state=%s;metric/metric_family=%s;exception_msg=%s;exception_type=%s;message=%s
+KAFKA_POSTMAN_KAFKA_CONSUMER_CLIENT_ID                   - The client ID that will be used when consuming messages from the source server. Can include the placeholders such as "{{#instance_id}}" and "{{#time_started}}" that are automatically resolved to the instance id (a unique identifier that is generated when the service launches) and to the unix time on which the service started. Accordingly.
+KAFKA_POSTMAN_KAFKA_CONSUMER_SERVER                      - The server (such as localhost:9020) from which the service will consume the source data.
+KAFKA_POSTMAN_KAFKA_PRODUCER_CLIENT_ID                   - The client ID that will be used when sending messages to the destination server. Can include the placeholders such as "{{#instance_id}}" and "{{#time_started}}" that are automatically resolved to the instance id (a unique identifier that is generated when the service launches) and to the unix time on which the service started. Accordingly.
+KAFKA_POSTMAN_KAFKA_PRODUCER_SERVER                      - The server (such as localhost:9020) to which the service will connect to publish the data in the relevant topics.
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC                     - The Kafka topic that will be used to by the service to discover the available destination topics if KafkaPostman_TOPICS_DISCOVERY_METHOD is set to TOPICS_TOPIC
+KAFKA_POSTMAN_SOURCE_TOPIC                               - The Kafka topic that will be used by the service to pull data from (and to distribute that data to the available destination topics)
+
+KAFKA_POSTMAN_AUTO_CREATE_MISSING_TOPICS
+KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST
+KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR
+KAFKA_POSTMAN_DISTRIBUTION_REGEX
+KAFKA_POSTMAN_DISTRIBUTION_REGEX_GROUP_INDEX
+KAFKA_POSTMAN_TOPIC_PINNING_ENABLED
+KAFKA_POSTMAN_TOPIC_PINNING_REGEX
+KAFKA_POSTMAN_TOPIC_PINNING_REGEX_GROUPS_INDEXES
+KAFKA_POSTMAN_REDIS_ADDRESSES
+KAFKA_POSTMAN_REDIS_DB_NO
+KAFKA_POSTMAN_REDIS_DB_PASSWORD
+KAFKA_POSTMAN_REDIS_CLUSTER_NAME
+KAFKA_POSTMAN_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS
+KAFKA_POSTMAN_DISCOVERY_INTERVAL
+KAFKA_POSTMAN_LOG_LEVEL
+KAFKA_POSTMAN_KAFKA_CONSUMER_GROUP_ID
+KAFKA_POSTMAN_KAFKA_CONSUMER_DEFAULT_OFFSET
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_SERVER
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_GROUP_ID
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_CLIENT_ID
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_MAX_DISCO_TIMEOUT
+KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC_MAX_WAIT_FOR_TOPICS
+KAFKA_POSTMAN_DEFAULT_TARGET_TOPIC
+KAFKA_POSTMAN_AUTO_DESTINATION_TOPIC_FILTERING_ENABLED
+KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON
+KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD
+KAFKA_POSTMAN_TOPICS_TOPIC_TOPIC_NAME_JSON_FIELD
+KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD_ASCENDING
+KAFKA_POSTMAN_TOPICS_VALIDATION_WHITELIST
+KAFKA_POSTMAN_TOPICS_VALIDATION_BLACKLIST
+KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_WHITELIST
+KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_BLACKLIST
+KAFKA_POSTMAN_TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA
+
+```
