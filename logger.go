@@ -27,7 +27,7 @@ type LogMessage struct {
 
 
 func LogForwarder(config *Config, msg LogMessage, messageObjects ...interface{}) {
-	if config != nil && config.LogLevel < msg.Level {
+	if config != nil && config.LogLevel >= msg.Level {
 		return
 	}
 

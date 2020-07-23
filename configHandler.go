@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -42,7 +44,6 @@ type Config struct {
 	DiscoveryTopicsTopicClientId            string
 	SourceTopic                             string
 	DefaultTargetTopic                      string
-	AutoCreateMissingTopics                 bool
 	TopicPinningRegex                       *regexp.Regexp
 	TopicPinningRegexString                 string
 	TopicPinningRegexGroupIndexes           []int64
@@ -70,69 +71,36 @@ type ConfigParamValue struct {
 	ValueRegexArray   []*regexp.Regexp
 }
 
+func resolvePlaceholders(s string, instanceId uuid.UUID, timeLaunchedUnix int64) (result string) {
+	instanceIdString := instanceId.String()
+	timeLaunchedUnixString := fmt.Sprintf("%v", timeLaunchedUnix)
+
+	_, err := regexp.Match("^\\$\\{[^ ]+\\}$", []byte(s))
+	if err == nil {
+		//Extract env var here
+		result = os.Getenv(s[len("${"):len(s) - len("}")])
+	}
+	result = strings.Replace(s, "{{#instance_id}}", instanceIdString, -1)
+	result = strings.Replace(result, "{{#time_started}}", timeLaunchedUnixString, -1)
+	result = strings.Replace(result, "{{#uuid}}", uuid.Must(uuid.NewRandom()).String(), -1)
+
+	return result
+}
+
 func getConfig() Config {
-	clientId := uuid.Must(uuid.NewRandom())
-	topicsDiscovererClientId := uuid.Must(uuid.NewRandom())
-	const (
-		DEFAULT_DISCOVERY_METHOD                           = DISCOVERY_METHOD_REGEX
-		DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST               = ""
-		DEFAULT_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR     = ","
-		DEFAULT_DISCOVERY_REGEX                            = ".*"
-		DEFAULT_DISTRIBUTION_REGEX                         = "^([^\\\\.]+)\\..*$"
-		DEFAULT_DISTRIBUTION_REGEX_GROUP_INDEX             = 1
-		DEFAULT_DISTRIBUTION_STRATEGY                      = DISTRIBUTION_STRATEGY_REGEX
-		DEFAULT_TOPIC_PINNING_REDIS_ADDRESSES              = "[\"redis:6379\"]"
-		DEFAULT_TOPIC_PINNING_REDIS_DB_NO                  = 0
-		DEFAULT_TOPIC_PINNING_REDIS_DB_PASSWORD            = ""
-		DEFAULT_TOPIC_PINNING_REDIS_CLUSTER_NAME           = ""
-		DEFAULT_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS       = 3600000
-		DEFAULT_TOPICS_DISCOVERY_INTERVAL                  = 1800000
-		DEFAULT_LOGGING_FORMAT                             = ""
-		DEFAULT_LOG_LEVEL                                  = LogLevel_INFO
-		DEFAULT_KAFKA_CONSUMER_SERVER_HOST                 = "kafka:9092"
-		DEFAULT_KAFKA_CONSUMER_GROUP_ID                    = "kafka-postman"
-		DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET              = KAFKA_DEFAULT_OFFSET_END
-		DEFAULT_KAFKA_PRODUCER_SERVER_HOST                 = "kafka:9092"
-		DEFAULT_KAFKA_PRODUCER_GROUP_ID                    = "kafka-postman"
-		DEFAULT_DISCOVERY_TOPICS_TOPIC                     = "consumers"
-		DEFAULT_SOURCE_TOPIC                               = "metrics"
-		DEFAULT_DEFAULT_TARGET_TOPIC                       = "_unknown_recipient"
-		DEFAULT_AUTO_CREATE_MISSING_TOPICS                 = "true"
-		DEFAULT_TOPIC_PINNING_ENABLED                      = "true"
-		DEFAULT_TOPIC_PINNING_REGEX                        = "^([^\\\\.]+)\\..*$"
-		DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES         = "0"
-		DEFAULT_AUTO_DESTINATION_TOPIC_FILTERING_ENABLED   = "true"
-		DEFAULT_DISCOVERY_TOPICS_TOPIC_SERVER_HOST         = "${KAFKA_CONSUMER_SERVER_HOST}"
-		DEFAULT_DISCOVERY_TOPICS_TOPIC_GROUP_ID            = "kafka-postman-topics-discoverer"
-		DEFAULT_DISCOVERY_TOPICS_TOPIC_MAX_DISCO_TIMEOUT   = 4
-		DEFAULT_DISCOVERY_TOPICS_TOPIC_MAX_WAIT_FOR_TOPICS = 2
-		DEFAULT_TOPICS_TOPIC_MAY_CONTAIN_JSON              = "false"
-		DEFAULT_TOPICS_TOPIC_SORT_BY_JSON_FIELD            = ""
-		DEFAULT_TOPICS_TOPIC_SORT_BY_JSON_FIELD_ASCENDING  = "true"
-		DEFAULT_TOPICS_TOPIC_TOPIC_NAME_JSON_FIELD         = "topic_name"
-		DEFAULT_TOPICS_VALIDATION_WHITELIST                = "[]"
-		DEFAULT_TOPICS_VALIDATION_BLACKLIST                = "[]"
-		DEFAULT_TOPICS_VALIDATION_REGEX_WHITELIST          = "[]"
-		DEFAULT_TOPICS_VALIDATION_REGEX_BLACKLIST          = "[]"
-		DEFAULT_TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA   = "true"
-	)
-	var (
-		DEFAULT_KAFKA_CONSUMER_CLIENT_ID          = clientId.String()
-		DEFAULT_KAFKA_PRODUCER_CLIENT_ID          = clientId.String()
-		DEFAULT_DISCOVERY_TOPICS_TOPIC_CLIENT_ID  = topicsDiscovererClientId.String()
-	)
+	instanceId := uuid.Must(uuid.NewRandom())
+	timeLaunched := time.Now().Unix()
 
 	return Config{
 		LoggingFormat:                           autoSelectConfig(DEFAULT_LOGGING_FORMAT, LOGGING_FORMAT, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		LogLevel:                                LogLevel(autoSelectConfig(strconv.FormatInt(DEFAULT_LOG_LEVEL, 10), LOG_LEVEL, []ConfigValidationMode{ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
 		KafkaConsumerServerHost:                 autoSelectConfig(DEFAULT_KAFKA_CONSUMER_SERVER_HOST, KAFKA_CONSUMER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaConsumerClientId:                   autoSelectConfig(DEFAULT_KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaConsumerGroupId:                    autoSelectConfig(DEFAULT_KAFKA_CONSUMER_GROUP_ID, KAFKA_CONSUMER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
+		KafkaConsumerClientId:                   resolvePlaceholders(autoSelectConfig(DEFAULT_KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
+		KafkaConsumerGroupId:                    resolvePlaceholders(autoSelectConfig(DEFAULT_KAFKA_CONSUMER_GROUP_ID, KAFKA_CONSUMER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
 		KafkaConsumerDefaultOffset:              autoSelectConfig(DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET, KAFKA_CONSUMER_DEFAULT_OFFSET, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_LIST_BASED}, ConfigParamValueType_STRING, KAFKA_DEFAULT_OFFSET_OPTIONS).ValueString,
 		KafkaProducerServerHost:                 autoSelectConfig(DEFAULT_KAFKA_PRODUCER_SERVER_HOST, KAFKA_PRODUCER_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaProducerClientId:                   autoSelectConfig(DEFAULT_KAFKA_PRODUCER_CLIENT_ID, KAFKA_PRODUCER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		KafkaProducerGroupId:                    autoSelectConfig(DEFAULT_KAFKA_PRODUCER_GROUP_ID, KAFKA_PRODUCER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		AutoCreateMissingTopics:                 bool(autoSelectConfig(DEFAULT_AUTO_CREATE_MISSING_TOPICS, AUTO_CREATE_MISSING_TOPICS, []ConfigValidationMode{ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
+		KafkaProducerClientId:                   resolvePlaceholders(autoSelectConfig(DEFAULT_KAFKA_PRODUCER_CLIENT_ID, KAFKA_PRODUCER_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
+		KafkaProducerGroupId:                    resolvePlaceholders(autoSelectConfig(DEFAULT_KAFKA_PRODUCER_GROUP_ID, KAFKA_PRODUCER_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
 		TopicPinningRegex:                       autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX, TOPIC_PINNING_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_REGEX, []string{}).ValueRegex,
 		TopicPinningRegexString:                 autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX, TOPIC_PINNING_REGEX, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX}, ConfigParamValueType_STRING, []string{}).ValueString,
 		TopicPinningRegexGroupIndexes:           parseIntArrFromString(autoSelectConfig(DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES, TOPIC_PINNING_REGEX_GROUPS_INDEXES, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_REGEX_MATCH_AND}, ConfigParamValueType_STRING, []string{"^[0-9,]+$"}).ValueString, ","),
@@ -157,8 +125,8 @@ func getConfig() Config {
 		DefaultTargetTopic:                      autoSelectConfig(DEFAULT_DEFAULT_TARGET_TOPIC, DEFAULT_TARGET_TOPIC, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
 		AutoDestinationTopicFilteringEnabled:    autoSelectConfig(DEFAULT_AUTO_DESTINATION_TOPIC_FILTERING_ENABLED, AUTO_DESTINATION_TOPIC_FILTERING_ENABLED, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool,
 		DiscoveryTopicsTopicServerHost:          autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC_SERVER_HOST, DISCOVERY_TOPICS_TOPIC_SERVER_HOST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryTopicsTopicGroupId:             autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC_GROUP_ID, DISCOVERY_TOPICS_TOPIC_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
-		DiscoveryTopicsTopicClientId:            autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC_CLIENT_ID, DISCOVERY_TOPICS_TOPIC_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString,
+		DiscoveryTopicsTopicGroupId:             resolvePlaceholders(autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC_GROUP_ID, DISCOVERY_TOPICS_TOPIC_GROUP_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
+		DiscoveryTopicsTopicClientId:            resolvePlaceholders(autoSelectConfig(DEFAULT_DISCOVERY_TOPICS_TOPIC_CLIENT_ID, DISCOVERY_TOPICS_TOPIC_CLIENT_ID, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY}, ConfigParamValueType_STRING, []string{}).ValueString, instanceId, timeLaunched),
 		DiscoveryTopicsTopicMaxDiscoveryTimeout: int64(autoSelectConfig(strconv.FormatInt(DEFAULT_DISCOVERY_TOPICS_TOPIC_MAX_DISCO_TIMEOUT, 10), DISCOVERY_TOPICS_TOPIC_MAX_DISCO_TIMEOUT, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
 		DiscoveryTopicsTopicMaxWaitForTopics:    int64(autoSelectConfig(strconv.FormatInt(DEFAULT_DISCOVERY_TOPICS_TOPIC_MAX_WAIT_FOR_TOPICS, 10), DISCOVERY_TOPICS_TOPIC_MAX_WAIT_FOR_TOPICS, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_INT}, ConfigParamValueType_INT, []string{}).ValueInt),
 		TopicsTopicMayContainJson:               bool(autoSelectConfig(DEFAULT_TOPICS_TOPIC_MAY_CONTAIN_JSON, TOPICS_TOPIC_MAY_CONTAIN_JSON, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
