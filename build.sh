@@ -25,8 +25,6 @@ if go build -o "$FOLDER/docker-compose/kafka-postman/kafka-postman"; then
 
   cd "$FOLDER/docker-compose/kafka-postman"
   sudo docker build . -t artifexil/kafka-postman:$NEW_VERSION -t artifexil/kafka-postman:latest
-  sudo docker push artifexil/kafka-postman:$NEW_VERSION
-  sudo docker push artifexil/kafka-postman:latest
 
   cd "$FOLDER/docker-compose"
   sudo docker stack deploy --compose-file docker-compose.yml kafka-postman
