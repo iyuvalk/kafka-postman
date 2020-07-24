@@ -21,11 +21,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" beforeDir="false" afterPath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/configHandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose/kafka-postman/kafka-postman" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

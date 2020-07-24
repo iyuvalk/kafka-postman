@@ -1,6 +1,8 @@
 # Kafka-postman
 Your Kafka topics organizer
 
+![Basic Algorithm](./Main_pipeline_and_environment_vars_description.svg)<img src="./Main_pipeline_and_environment_vars_description.svg">
+
 ## The problem I came to solve
 When I wrote the [Pensu](https://github.com/iyuvalk/pensu) service for metrics anomaly detection and prediction, I quickly realized that since this service reads the metrics from a Kafka topic and outputs its predictions and anomaly scores to another Kafka topic, it will need some way to scale horizontally. Since just adding more instances of the service cannot guarantee that once a service starts to get a specific metric it will continue to receive all the datapoints for that metric from that moment on, I decided to write this service to help distribute data from one source topic to several destination topics based on some configurable logic.
 
