@@ -120,18 +120,23 @@ Environment variable                                      | Meaning             
 `KAFKA_POSTMAN_TOPICS_VALIDATION_BLACKLIST`               | If set to a JSON string array, the destination topic will always be validated against the list to make sure that it is not on the list (either in the discovery phase or before forwarding the message) | `[]`
 `KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_WHITELIST`         | If set to a JSON string array, that contains valid compilable regular expressions, the destination topic will always be validated against the list to make sure that it matches at least one of the regexes on the list | `[]`
 `KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_BLACKLIST`         | If set to a JSON string array, that contains valid compilable regular expressions, the destination topic will always be validated against the list to make sure that it does not match any of the regexes on the list | `[]`
-
+<br />
+<br />
  
 #### Used when `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "REGEX"
 Environment variable                                      | Meaning                                                                                                                              | Default
 ----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------
 `KAFKA_POSTMAN_DISCOVERY_REGEX`                           | If KafkaPostman_TOPICS_DISCOVERY_METHOD is set to REGEX the service will use this regex to match each topic on Kafka periodically and add those who matched it to the list of discovered topics | `^([^\.]+)\..*$`
+<br />
+<br />
 
 #### Used when `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "MANUAL"
 Environment variable                                      | Meaning                                                                                                                              | Default
 ----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------
 `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST`              | The list of topics to choose from when distributing messages. This list is expected to be delimited by `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR` | `<empty string>`
 `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST_SEPARATOR`    | The delimiter used to split the list specified by `KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST`                                       | `,`
+<br />
+<br />
 
 #### Used when `KAFKA_POSTMAN_TOPICS_DISCOVERY_METHOD` is "TOPICS_TOPIC"
 In this special mode, kafka-postman assumes that consuming applications are periodically sending messages to a topic on a Kafka cluster and that these messages contain the name of the topic these consumers are listening to and possibly more information.
@@ -150,12 +155,16 @@ Environment variable                                      | Meaning             
 `KAFKA_POSTMAN_TOPICS_TOPIC_TOPIC_NAME_JSON_FIELD`        | If `KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON` is true, the service will treat the data on the `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC` topic as JSON and will extract the topic names from the field specified by this value | `topic_name`
 `KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD`           | If `KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON` is true and this value is not empty, the service will use this value to sort the list of topics pulled from the `KAFKA_POSTMAN_TOPICS_DISCOVERY_TOPIC` topic by the value in the JSON field specified by this value. It can be used by consumers, for example, to indicate their current load, effectively causing kafka-postman to function as a load balancer | `<empty string>`  
 `KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD_ASCENDING` | If `KAFKA_POSTMAN_TOPICS_TOPIC_MAY_CONTAIN_JSON` is true and `KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD` is not empty, this value will determine the sort order of the topics by the value in the field specified by `KAFKA_POSTMAN_TOPICS_TOPIC_SORT_BY_JSON_FIELD` | `true`
+<br />
+<br />
 
 #### Used when `KAFKA_POSTMAN_DISTRIBUTION_STRATEGY` is "REGEX"
 Environment variable                                      | Meaning                                                                                                                              | Default
 ----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------
 `KAFKA_POSTMAN_DISTRIBUTION_REGEX_GROUP_INDEX`            | See below                                                                                                                            | `1`
 `KAFKA_POSTMAN_DISTRIBUTION_REGEX`                        | If KafkaPostman_TOPICS_DISTRIBUTION_STRATEGY is set to REGEX, the string extracted by this regex (at the regex group number specified by `KAFKA_POSTMAN_DISTRIBUTION_REGEX_GROUP_INDEX`) will be used as a destination topic. | `^([^\.]+)\..*$`
+<br />
+<br />
 
 #### Used when `KAFKA_POSTMAN_TOPIC_PINNING_ENABLED` is "true"
 Environment variable                                      | Meaning                                                                                                                              | Default
