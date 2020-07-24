@@ -1,0 +1,8 @@
+#!/bin/bash
+FILE=$(basename "$0")
+
+if [ $# -lt 0 ] || [ $# -gt 0 ]; then
+  echo "ERROR: Not enough/too many arguments. Usage $FILE <kafka-postman-container-id>"
+fi
+container_id=$(docker ps | grep artifexil/kafka-postman:latest | head -n 1 | awk '{print $1}')
+docker logs "$container_id" | jq -r '. | "\(.Timestamp):\t\(.Version): \(.LogLevelLabel):\t\(.Message)"'
