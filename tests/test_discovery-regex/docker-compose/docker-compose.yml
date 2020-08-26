@@ -155,7 +155,7 @@ services:
       KAFKA_POSTMAN_SOURCE_TOPIC: "metrics"
       KAFKA_POSTMAN_DISCOVERY_METHOD: "REGEX"
       KAFKA_POSTMAN_DISCOVERY_REGEX: "^[bp].*"
-      # Note that by default the distribution strategy is "REGEX", which means that it will exract a portion of the message by using a regex and will use it as the target topic. Meaning that the discovery is almost ignored (it will only compare the discovered topic against the list of all kafka topics)
+      # Note that by default the distribution strategy is "REGEX", which means that it will extract a portion of the message by using a regex and will use it as the target topic. Meaning that the discovery is almost ignored (it will only compare the discovered topic against the list of all kafka topics)
       KAFKA_POSTMAN_DISTRIBUTION_STRATEGY: "ROUND_ROBIN"
     depends_on:
       - kafka

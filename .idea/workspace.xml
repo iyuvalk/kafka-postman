@@ -20,44 +20,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/bin/kafka-postman/start-kafka-postman.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/poll_data.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_defaults/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_defaults/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_defaults/test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-manual/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-manual/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-manual/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-manual/test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-regex/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-regex/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_discovery-regex/test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-regex/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-regex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-regex/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-regex/test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/cleanup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/init.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/test.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_defaults/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/kafka-postman/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/manhole/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/manhole/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/sample_data_generator/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_generator/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/sample_data_generator/generate_data.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_generator/generate_data.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/sample_data_poller/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/sample_data_poller/poll_data.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose/sample_data_poller/topics_topic_reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/topics_topic_reporter.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +60,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_distribution-roundrobin" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -103,18 +71,18 @@
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/tests/test_distribution-roundrobin" />
-      <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
-      <recent name="$PROJECT_DIR$/tests/test_discovery-regex" />
-      <recent name="$PROJECT_DIR$/tests/test_defaults" />
-      <recent name="$PROJECT_DIR$/tests/test_discovery-manual" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/tests/test_distribution-regex" />
       <recent name="$PROJECT_DIR$/tests/suppl" />
       <recent name="$PROJECT_DIR$/tests/test_basic-sanity" />
       <recent name="$PROJECT_DIR$/bin" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
+      <recent name="$PROJECT_DIR$/tests/test_distribution-roundrobin" />
+      <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
+      <recent name="$PROJECT_DIR$/tests/test_discovery-regex" />
+      <recent name="$PROJECT_DIR$/tests/test_defaults" />
     </key>
   </component>
   <component name="RunManager">

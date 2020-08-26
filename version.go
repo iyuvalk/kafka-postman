@@ -2,5 +2,5 @@
 package main
 
 func GetMyVersion() string {
-	return "v0.0.179.1598370145"
+	return "v0.0.180.1598416252"
 }
