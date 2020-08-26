@@ -100,6 +100,20 @@ func main() {
 		LogForwarder(nil, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, MessageFormat: "ERROR: Configuration is not JSON parsable. CANNOT CONTINUE. (%v)"}, err)
 		os.Exit(8)
 	}
+	switch config.LogLevel {
+	case LogLevel_VERBOSE:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "LogLevel is VERBOSE"})
+	case LogLevel_DEBUG:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "LogLevel is DEBUG"})
+	case LogLevel_INFO:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "LogLevel is INFO"})
+	case LogLevel_WARN:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_WARN, MessageFormat: "LogLevel is WARN"})
+	case LogLevel_ERROR:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, MessageFormat: "LogLevel is ERROR"})
+	default:
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "LogLevel is UNKNOWN"})
+	}
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "This is the loaded config: %s"}, configJsonBytes)
 
 	//2. for message_idx, message in kafka.GetMessages(KafkaPostman_SOURCE_TOPIC) {
@@ -126,17 +140,23 @@ func main() {
 			if timeSinceLastDiscovery := time.Now().Unix() - lastTopicsDiscoveryTimestamp; timeSinceLastDiscovery > config.DiscoveryIntervalSecs || len(discoveredTopics) == 0 || len(allKafkaTopicsSeen) == 0 {
 				timeDiscoveryStarted := time.Now()
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Re-discovering destination topics. (timeSinceLastDiscovery: %v, config.DiscoveryIntervalSecs: %v, len(discoveredTopics): %v)"}, timeSinceLastDiscovery, config.DiscoveryIntervalSecs, len(discoveredTopics))
-				discoveredTopics, allKafkaTopicsSeen = discoverTopics(config, kafkaConsumer, discoveredTopics, topicsTopicReader)
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Discovered the following topics: %v"}, discoveredTopics)
+				discoveredTopics, allKafkaTopicsSeen = discoverTopics(config, kafkaConsumer, topicsTopicReader)
 				if config.AutoDestinationTopicFilteringEnabled {
 					discoveredTopics = filterOutInvalidTopics(discoveredTopics, config)
-					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "After filtering the invalid topics this is the list of discovered topics: %v"}, discoveredTopics)
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "After filtering the invalid topics this is the list of discovered topics: %v"}, discoveredTopics)
 				} else {
-					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Destination topics filtering is disabled. If this feature is disabled the service might write to the same topic it is reading from or to topics that are internally used by kafka, this can cause unpredictable behaviour"})
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Destination topics filtering is disabled. If this feature is disabled the service might write to the same topic it is reading from or to topics that are internally used by kafka, this can cause unpredictable behaviour"})
 				}
 				lastTopicsDiscoveryTimestamp = time.Now().Unix()
 				timeDiscoveryTaken = time.Now().Sub(timeDiscoveryStarted)
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Topics discovery ran. Time taken: %v"}, timeDiscoveryTaken)
+				if config.LogLevel == LogLevel_VERBOSE {
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topics discovery ran. Time taken: %v, Topics discovered: %v, All Kafka topics seen: %v"}, timeDiscoveryTaken, discoveredTopics, allKafkaTopicsSeen)
+				} else {
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "Topics discovery ran. Time taken: %v, No. of topics discovered: %v, No. of all Kafka topics seen: %v"}, timeDiscoveryTaken, len(discoveredTopics), len(allKafkaTopicsSeen))
+				}
+				if len(discoveredTopics) == 0 {
+					panic("ERROR: No topics were discovered. CANNOT CONTINUE.")
+				}
 			}
 
 			//5. Decide on a default destination topic (based on distribution strategy)
@@ -155,11 +175,6 @@ func main() {
 			}
 			timeDestinationTopicDecisionTaken := time.Now().Sub(timeDestinationTopicDecisionStarted)
 
-			if config.LogLevel >= LogLevel_VERBOSE {
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_VERBOSE, Error: nil, MessageFormat: "Will forward the message '%s' to topic %s"}, msg.Value, defaultDestinationTopic)
-			} else {
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Will forward current message to topic %s"}, defaultDestinationTopic)
-			}
 
 			//7. Topic validation - For DISTRIBUTION_STRATEGY_REGEX, DISCOVERY_METHOD_MANUAL or DISCOVERY_METHOD_TOPICS_TOPIC (in these configuration the service DYNAMICALLY selects a topic based on information that is not provided by Kafka)
 			if config.DistributionStrategy == DISTRIBUTION_STRATEGY_REGEX || config.DiscoveryMethod == DISCOVERY_METHOD_MANUAL || config.DiscoveryMethod == DISCOVERY_METHOD_TOPICS_TOPIC {
@@ -168,6 +183,12 @@ func main() {
 					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_WARN, Error: nil, MessageFormat: "Topic %v is invalid according to the topic validation methods selected. Sending this message to default destination topic %v"}, defaultDestinationTopic, config.DefaultTargetTopic)
 					defaultDestinationTopic = config.DefaultTargetTopic
 				}
+			}
+
+			if config.LogLevel >= LogLevel_VERBOSE {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_VERBOSE, Error: nil, MessageFormat: "Will forward the message '%s' to topic %s"}, msg.Value, defaultDestinationTopic)
+			} else {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Will forward current message to topic %s"}, defaultDestinationTopic)
 			}
 
 			//8. kafka.PublishMessage(selected_topic, message)
@@ -179,12 +200,13 @@ func main() {
 			}, deliveryChan)
 
 			timeHandlingTaken := time.Now().Sub(timeHandlingStarted)
-			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Message handling completed. (timeDiscoveryTaken: %v, timeDestinationTopicDecisionTaken: %v, timeTotalHandlingTaken: %v)"}, timeDiscoveryTaken, timeDestinationTopicDecisionTaken, timeHandlingTaken)
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Message handling completed. Sent to topic '%v' (timeDiscoveryTaken: %v, timeDestinationTopicDecisionTaken: %v, timeTotalHandlingTaken: %v)"}, defaultDestinationTopic, timeDiscoveryTaken, timeDestinationTopicDecisionTaken, timeHandlingTaken)
 		}
 	}
 }
 
 func validateDestinationTopic(destinationTopic string, kafkaTopics []string, config Config) (result bool) {
+	CUR_FUNCTION := "validateDestinationTopic"
 	result = true
 	if config.TopicsValidationValidateAgainstKafka ||
 		len(config.TopicsValidationWhitelist) > 0 ||
@@ -192,22 +214,31 @@ func validateDestinationTopic(destinationTopic string, kafkaTopics []string, con
 		len(config.TopicsValidationRegexWhitelist) > 0 ||
 		len(config.TopicsValidationRegexBlacklist) > 0 {
 		if result && config.TopicsValidationValidateAgainstKafka && !stringInSlice(destinationTopic, kafkaTopics) {
+			if config.LogLevel == LogLevel_VERBOSE {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be invalid. It is not on the list of all kafka topics. (allKafkaTopics: %v)"}, destinationTopic, kafkaTopics)
+			} else {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat: "The topic %v was found to be invalid. It is not on the list of all kafka topics."}, destinationTopic)
+			}
 			result = false
 			return
 		}
 		if result && len(config.TopicsValidationWhitelist) > 0 && !stringInSlice(destinationTopic, config.TopicsValidationWhitelist) {
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be invalid. It is not on the whitelist."}, destinationTopic)
 			result = false
 			return
 		}
 		if result && len(config.TopicsValidationBlacklist) > 0 && stringInSlice(destinationTopic, config.TopicsValidationBlacklist) {
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be invalid. It is on the blacklist."}, destinationTopic)
 			result = false
 			return
 		}
 		if result && len(config.TopicsValidationRegexWhitelist) > 0 && len(extractMatches([]string{destinationTopic}, config.TopicsValidationRegexWhitelist)) == 0 {
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be invalid. It does not match any of the whitelist regexes."}, destinationTopic)
 			result = false
 			return
 		}
 		if result && len(config.TopicsValidationRegexBlacklist) > 0 && len(extractMatches([]string{destinationTopic}, config.TopicsValidationRegexBlacklist)) > 0 {
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be invalid. It matched at least one of the blacklist regexes."}, destinationTopic)
 			result = false
 			return
 		}
@@ -344,35 +375,47 @@ func getDefaultDestinationTopic(config Config, discoveredTopics []string, roundR
 	return defaultDestinationTopic
 }
 
-func discoverTopics(config Config, kafkaConsumer kafka.Consumer, discoveredTopics []string, topicsTopicReader *kafka.Consumer) (topicsDiscovered []string, allKafkaTopics []string) {
-    //CUR_FUNCTION := "discoverTopics"
+func discoverTopics(config Config, kafkaConsumer kafka.Consumer, topicsTopicReader *kafka.Consumer) (topicsDiscovered []string, allKafkaTopics []string) {
+    CUR_FUNCTION := "discoverTopics"
+	additionalArgument := ""
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Function start. Getting all kafka topics"})
     allKafkaTopics = getAllTopicNamesFromKafka(kafkaConsumer, config)
 	tmpTopicsList := make([]string, 0, 0)
 	switch config.DiscoveryMethod {
 	case DISCOVERY_METHOD_REGEX:
+		additionalArgument = config.DiscoveryRegexString
 		tmpTopicsList = discoverTopicsByRegex(allKafkaTopics, config)
 	case DISCOVERY_METHOD_MANUAL:
+		additionalArgument = config.DiscoveryManualTopicsList
 		if len(config.DiscoveryManualTopicsList) > 0 {
 			tmpTopicsList = strings.Split(config.DiscoveryManualTopicsList, config.DiscoveryManualTopicsListSeparator)
 		}
 	case DISCOVERY_METHOD_TOPICS_TOPIC:
 		//TODO: Test this code... (-: (prepare first multiple pollers that will send the topic names to the topics topic)
+		additionalArgument = config.DiscoveryTopicsTopic
 		tmpTopicsList = discoverTopicsByTopicsTopic(config, kafkaConsumer, topicsTopicReader)
 	default:
 		panic("Unknown topics discovery method. LEAVING")
 	}
-	discoveredTopics = tmpTopicsList
+	topicsDiscovered = tmpTopicsList
 
 	//Topics validation for DISCOVERY_METHOD_REGEX and DISTRIBUTION_STRATEGY != DISTRIBUTION_STRATEGY_REGEX
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "tmpTopicsList: %v. Validating them if needed."}, tmpTopicsList)
 	validatedTopicsList := make([]string, 0, 0)
 	if config.DiscoveryMethod == DISCOVERY_METHOD_REGEX && config.DistributionStrategy != DISTRIBUTION_STRATEGY_REGEX {
 		for _, discoveredTopic := range tmpTopicsList {
-			if (validateDestinationTopic(discoveredTopic, allKafkaTopics, config)) {
+			if validateDestinationTopic(discoveredTopic, allKafkaTopics, config) {
 				validatedTopicsList = append(validatedTopicsList, discoveredTopic)
+			} else {
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topic %v is invalid. SKIPPED."}, topicsDiscovered)
 			}
 		}
-		discoveredTopics = validatedTopicsList
+		copy(topicsDiscovered, validatedTopicsList)
+	} else {
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Since that the discovery method selected is 'DISCOVERY_METHOD_REGEX' or that distribution strategy is set to 'DISTRIBUTION_STRATEGY_REGEX' there's no need for topic validation because the destination topic is either based on the list of all topics in the kafka cluster or on the message itself."})
 	}
+
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Discovered topics. Number of topics discovered: %v, Total number of topics seen on Kafka: %v (ValidatedTopicsList: %v, Discovery method: %v, additional argument: %v)"}, len(topicsDiscovered), len(allKafkaTopics), validatedTopicsList, config.DiscoveryMethod, additionalArgument)
 	return
 }
 

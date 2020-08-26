@@ -27,7 +27,8 @@ type LogMessage struct {
 
 
 func LogForwarder(config *Config, msg LogMessage, messageObjects ...interface{}) {
-	if config != nil && config.LogLevel >= msg.Level {
+    if config != nil && msg.Level > config.LogLevel {
+    	//Drop messages that are more verbose than what allowed by the config
 		return
 	}
 
@@ -65,12 +66,12 @@ func LogForwarder(config *Config, msg LogMessage, messageObjects ...interface{})
 		jsonMessage.LogLevelLabel = "[VERBOSE]"
 	case LogLevel_DEBUG:
 		jsonMessage.LogLevelLabel = "[DEBUG  ]"
+	case LogLevel_INFO:
+		jsonMessage.LogLevelLabel = "[INFO   ]"
 	case LogLevel_WARN:
 		jsonMessage.LogLevelLabel = "[WARN   ]"
 	case LogLevel_ERROR:
 		jsonMessage.LogLevelLabel = "[ERROR  ]"
-	case LogLevel_INFO:
-		jsonMessage.LogLevelLabel = "[INFO   ]"
 	default:
 		panic("Unknown log level " + strconv.FormatInt(int64(msg.Level), 10) + " for message " + fmt.Sprintf("%v", msg.MessageFormat) + " from " + fmt.Sprintf("%v", msg.Caller))
 	}

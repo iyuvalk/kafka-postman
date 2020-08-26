@@ -1,0 +1,168 @@
+version: "3"
+services:
+
+  zookeeper:
+    image: confluent/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - net
+    environment:
+      zk_id: 1
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - net
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: "metrics:1:1,sylvester:1:1,bugs_bunny:1:1,daffy_duck:1:1,tweety:1:1,porky_pig:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: "kafka-postman_zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092
+      KAFKA_LISTENERS: INSIDE://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    depends_on:
+      - zookeeper
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+#  redis:
+#    image: redis
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - net
+#    deploy:
+#      mode: "replicated"
+#      replicas: 1
+#      restart_policy:
+#        condition: any
+
+  data_generator:
+    image: artifexil/kafka-postman_data-generator:latest
+    command: ./generate_data.sh --wait 30
+    networks:
+      - net
+    depends_on:
+      - kafka
+      - kafka_postman
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      RAW_DATA_TOPIC: "metrics"
+
+  data_poller1:
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "bugs_bunny"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 100
+      REPORT_INTERVAL: 10
+    volumes:
+      - /tmp/data-poller-bugs_bunny:/log
+
+  data_poller2:
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "porky_pig"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 50
+      REPORT_INTERVAL: 10
+    volumes:
+      - /tmp/data-poller-porky_pig:/log
+
+  data_poller3:
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "sylvester"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 1
+      REPORT_INTERVAL: 10
+    volumes:
+      - /tmp/data-poller-sylvester:/log
+
+  data_poller4:
+    image: artifexil/kafka-postman_data-poller:latest
+    networks:
+      - net
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      TOPIC2LISTEN_TO: "metrics"
+      TOPICS_TOPIC_JSON: "topics_topic_json"
+      TOPICS_TOPIC_TEXT: "topics_topic"
+      LOAD2REPORT: 1
+      REPORT_INTERVAL: 10
+    volumes:
+      - /tmp/data-poller-raw:/log
+
+  kafka_postman:
+    image: kafka-postman:latest
+    command: ./start-kafka-postman.sh --wait 20
+    networks:
+      - net
+    environment:
+      KAFKA_POSTMAN_KAFKA_CONSUMER_SERVER: "kafka-postman_kafka:9092"
+      KAFKA_POSTMAN_SOURCE_TOPIC: "metrics"
+      KAFKA_POSTMAN_DISCOVERY_METHOD: "MANUAL"
+      KAFKA_POSTMAN_DISCOVERY_MANUAL_TOPICS_LIST: "sylvester,bugs_bunny,porky_pig"
+    depends_on:
+      - kafka
+    deploy:
+      mode: "replicated"
+      replicas: 1
+      restart_policy:
+        condition: any
+
+
+networks:
+  net:

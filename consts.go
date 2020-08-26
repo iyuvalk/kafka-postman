@@ -62,7 +62,7 @@ const (
 	DEFAULT_TOPIC_PINNING_HASH_SLIDING_EXPIRY_MS       = 3600000
 	DEFAULT_TOPICS_DISCOVERY_INTERVAL                  = 1800
 	DEFAULT_LOGGING_FORMAT                             = ""
-	DEFAULT_LOG_LEVEL                                  = LogLevel_INFO
+	DEFAULT_LOG_LEVEL                                  = LogLevel_VERBOSE
 	DEFAULT_KAFKA_CONSUMER_SERVER_HOST                 = "kafka:9092"
 	DEFAULT_KAFKA_CONSUMER_GROUP_ID                    = "kafka-postman"
 	DEFAULT_KAFKA_CONSUMER_DEFAULT_OFFSET              = KAFKA_DEFAULT_OFFSET_END
@@ -71,7 +71,7 @@ const (
 	DEFAULT_DISCOVERY_TOPICS_TOPIC                     = "consumers"
 	DEFAULT_SOURCE_TOPIC                               = "metrics"
 	DEFAULT_DEFAULT_TARGET_TOPIC                       = "_unknown_recipient"
-	DEFAULT_TOPIC_PINNING_ENABLED                      = "true"
+	DEFAULT_TOPIC_PINNING_ENABLED                      = "false"
 	DEFAULT_TOPIC_PINNING_REGEX                        = "^([^\\\\.]+)\\..*$"
 	DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES         = "0"
 	DEFAULT_AUTO_DESTINATION_TOPIC_FILTERING_ENABLED   = "true"
@@ -88,9 +88,9 @@ const (
 	DEFAULT_TOPICS_VALIDATION_REGEX_WHITELIST          = "[]"
 	DEFAULT_TOPICS_VALIDATION_REGEX_BLACKLIST          = "[]"
 	DEFAULT_TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA   = "true"
-	DEFAULT_KAFKA_CONSUMER_CLIENT_ID                   = "{{uuid}}"
-	DEFAULT_KAFKA_PRODUCER_CLIENT_ID                   = "{{uuid}}"
-	DEFAULT_DISCOVERY_TOPICS_TOPIC_CLIENT_ID           = "{{uuid}}"
+	DEFAULT_KAFKA_CONSUMER_CLIENT_ID                   = "{{#uuid}}"
+	DEFAULT_KAFKA_PRODUCER_CLIENT_ID                   = "{{#uuid}}"
+	DEFAULT_DISCOVERY_TOPICS_TOPIC_CLIENT_ID           = "{{#uuid}}"
 )
 
 type ConfigValidationMode int
