@@ -79,5 +79,8 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
       echo "+WARN: Folder $test_folder does not contain any executable files named '"'test*.sh'"'. SKIPPING"
     fi
   done
-  echo "+All tests ran successfully. Docker image at version $NEW_VERSION is available locally."
+  echo "+All tests ran successfully. Docker image at version $NEW_VERSION is available locally. Tagging the new image"
+  IMAGE_ID=$(docker image ls | grep -E '^kafka-postman\s+'"$NEW_VERSION" | awk '{print $3}')
+  docker tag $IMAGE_ID artifexil/kafka-postman:$NEW_VERSION
+  docker tag $IMAGE_ID artifexil/kafka-postman:latest
 fi

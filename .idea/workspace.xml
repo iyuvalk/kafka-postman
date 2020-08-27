@@ -20,12 +20,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/test.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/cleanup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/init.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/test.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +63,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -78,11 +81,11 @@
       <recent name="$PROJECT_DIR$/bin" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
       <recent name="$PROJECT_DIR$/tests/test_distribution-roundrobin" />
       <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
       <recent name="$PROJECT_DIR$/tests/test_discovery-regex" />
-      <recent name="$PROJECT_DIR$/tests/test_defaults" />
     </key>
   </component>
   <component name="RunManager">
