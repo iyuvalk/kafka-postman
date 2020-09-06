@@ -391,7 +391,6 @@ func discoverTopics(config Config, kafkaConsumer kafka.Consumer, topicsTopicRead
 			tmpTopicsList = strings.Split(config.DiscoveryManualTopicsList, config.DiscoveryManualTopicsListSeparator)
 		}
 	case DISCOVERY_METHOD_TOPICS_TOPIC:
-		//TODO: Test this code... (-: (prepare first multiple pollers that will send the topic names to the topics topic)
 		additionalArgument = config.DiscoveryTopicsTopic
 		tmpTopicsList = discoverTopicsByTopicsTopic(config, kafkaConsumer, topicsTopicReader)
 	default:

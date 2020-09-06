@@ -20,15 +20,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/cleanup.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/init.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/test.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationKafka/cleanup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationKafka/docker-compose/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationKafka/init.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_topicValidationKafka/test.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +60,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests/test_topicValidationKafka" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -71,7 +68,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -81,11 +78,11 @@
       <recent name="$PROJECT_DIR$/bin" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationKafka" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
-      <recent name="$PROJECT_DIR$/tests/test_distribution-roundrobin" />
-      <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
-      <recent name="$PROJECT_DIR$/tests/test_discovery-regex" />
     </key>
   </component>
   <component name="RunManager">
@@ -120,14 +117,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="755" y="215" width="400" height="684" key="#GOPATH" timestamp="1589950342921">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state x="755" y="215" width="400" height="684" key="#GOPATH/0.27.1920.1053@0.27.1920.1053" timestamp="1589950342921" />
-    <state x="418" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589863748272">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state x="418" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1589863748272" />
     <state x="638" y="355" width="633" height="403" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597123929025">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -136,10 +125,6 @@
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="622" y="178" width="666" height="758" key="#go_build_kafka-postman.go/0.27.1920.1053@0.27.1920.1053" timestamp="1594790097502" />
-    <state x="622" y="90" width="666" height="934" key="#sample_data_generator/Dockerfile" timestamp="1589344817920">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state x="622" y="90" width="666" height="934" key="#sample_data_generator/Dockerfile/0.27.1920.1053@0.27.1920.1053" timestamp="1589344817920" />
     <state width="1874" height="358" key="GridCell.Tab.0.bottom" timestamp="1594975737249">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -160,26 +145,10 @@
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
     <state width="1874" height="133" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
-    <state width="1874" height="340" key="GridCell.Tab.1.bottom" timestamp="1589949957430">
+    <state x="449" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1599366109496">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1589949957430" />
-    <state width="1874" height="340" key="GridCell.Tab.1.center" timestamp="1589949957430">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.center/0.27.1920.1053@0.27.1920.1053" timestamp="1589949957430" />
-    <state width="1874" height="340" key="GridCell.Tab.1.left" timestamp="1589949957429">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.left/0.27.1920.1053@0.27.1920.1053" timestamp="1589949957429" />
-    <state width="1874" height="340" key="GridCell.Tab.1.right" timestamp="1589949957430">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.right/0.27.1920.1053@0.27.1920.1053" timestamp="1589949957430" />
-    <state x="449" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1595309520091">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state x="449" y="188" width="1022" height="737" key="SettingsEditor/0.27.1920.1053@0.27.1920.1053" timestamp="1595309520091" />
+    <state x="449" y="188" width="1022" height="737" key="SettingsEditor/0.27.1920.1053@0.27.1920.1053" timestamp="1599366109496" />
     <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1591810552827">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
