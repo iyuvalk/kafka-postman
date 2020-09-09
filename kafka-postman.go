@@ -200,7 +200,7 @@ func main() {
 			}, deliveryChan)
 
 			timeHandlingTaken := time.Now().Sub(timeHandlingStarted)
-			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Message handling completed. Sent to topic '%v' (timeDiscoveryTaken: %v, timeDestinationTopicDecisionTaken: %v, timeTotalHandlingTaken: %v)"}, defaultDestinationTopic, timeDiscoveryTaken, timeDestinationTopicDecisionTaken, timeHandlingTaken)
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Level: LogLevel_INFO, Error: nil, MessageFormat: "Finished handling message. Sent to topic '%v' (timeDiscoveryTaken: %v, timeDestinationTopicDecisionTaken: %v, timeTotalHandlingTaken: %v)"}, defaultDestinationTopic, timeDiscoveryTaken, timeDestinationTopicDecisionTaken, timeHandlingTaken)
 		}
 	}
 }
