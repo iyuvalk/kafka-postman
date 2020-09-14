@@ -12,16 +12,16 @@ NEW_VERSION="${MAJOR}.${MINOR}.${REV}.${DATE}"
 MAX_RETRIES=10
 
 cd "$FOLDER"
-echo "+Getting old version's hash..
+echo "+Getting old version's hash..."
 find "$FOLDER/bin" -type f -exec md5sum {} \; | sort
 OLD_VER_HASH=$(find "$FOLDER/bin" -type f -exec md5sum {} \; | sort | md5sum | awk '{print $1}')
 echo "+Trying to compile the code..."
 if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
-  echo "+Getting new version's hash..."
+  echo "+Getting new version hash..."
   find "$FOLDER/bin" -type f -exec md5sum {} \; | sort
   NEW_VER_HASH=$(find "$FOLDER/bin" -type f -exec md5sum {} \; | sort | md5sum | awk '{print $1}')
   if [[ "$NEW_VER_HASH" == "$OLD_VER_HASH" ]]; then
-    echo "+The new version hasn't changed. Assuming that only the tests have changed."
+    echo "+The new version has not changed. Assuming that only the tests have changed."
     BIN_CHANGE_DETECTED=0
   else
     echo "+The new version has changed. Updating the version file..."
@@ -68,13 +68,13 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
           TEST_STATUS=$?
           echo -e "$TEST_RES" | sed -e 's/^/\['"$FOLDER_NAME"'\][TEST   ] /'
           if [ $TEST_STATUS -eq 0 ]; then
-            echo "+Test $test_file succeeded ($RETRIES retries left). Cleaning up and continuing..."
+            echo "+Test $test_file succeeded \($RETRIES retries left\). Cleaning up and continuing..."
             break
           else
             if [ $RETRIES -gt 0 ]; then
-              echo "+Test $test_folder FAILED ($RETRIES retries left). Retrying..."
+              echo "+Test $test_folder FAILED \($RETRIES retries left\). Retrying..."
             else
-              echo "+Test $test_folder FAILED ($RETRIES retries left). Leaving everything UNCLEAN to help debug this... (You can clean it up by running \"$(realpath $test_folder)/cleanup.sh\" \"$(realpath $test_folder)\")"
+              echo "+Test $test_folder FAILED \($RETRIES retries left\). Leaving everything UNCLEAN to help debug this... \(You can clean it up by running \"$(realpath $test_folder)/cleanup.sh\" \"$(realpath $test_folder)\"\)"
               exit 9
             fi
           fi
@@ -88,7 +88,7 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
         sleep 10s
       fi
     else
-      echo "+WARN: Folder $test_folder does not contain any executable files named '"'test*.sh'"'. SKIPPING"
+      echo '+WARN: Folder '"$test_folder"' does not contain any executable files named "test*.sh". SKIPPING'
     fi
   done
   if [[ "$BIN_CHANGE_DETECTED" == 1 ]]; then
