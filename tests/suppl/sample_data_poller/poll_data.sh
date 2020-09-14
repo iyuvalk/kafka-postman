@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z $REPORT_JSON ]; then
+if [ -z $TOPICS_TOPIC_JSON ] || [ -z $TOPICS_TOPIC_TEXT ]; then
   topics_topic_reporter.sh &
 fi
 
