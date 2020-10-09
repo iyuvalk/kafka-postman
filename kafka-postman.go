@@ -243,6 +243,7 @@ func validateDestinationTopic(destinationTopic string, kafkaTopics []string, con
 			return
 		}
 	}
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "The topic %v was found to be valid."}, destinationTopic)
 	return
 }
 
@@ -401,18 +402,14 @@ func discoverTopics(config Config, kafkaConsumer kafka.Consumer, topicsTopicRead
 	//Topics validation for DISCOVERY_METHOD_REGEX and DISTRIBUTION_STRATEGY != DISTRIBUTION_STRATEGY_REGEX
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "tmpTopicsList: %v. Validating them if needed."}, tmpTopicsList)
 	validatedTopicsList := make([]string, 0, 0)
-	if config.DiscoveryMethod == DISCOVERY_METHOD_REGEX && config.DistributionStrategy != DISTRIBUTION_STRATEGY_REGEX {
-		for _, discoveredTopic := range tmpTopicsList {
-			if validateDestinationTopic(discoveredTopic, allKafkaTopics, config) {
-				validatedTopicsList = append(validatedTopicsList, discoveredTopic)
-			} else {
-				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topic %v is invalid. SKIPPED."}, topicsDiscovered)
-			}
+	for _, discoveredTopic := range tmpTopicsList {
+		if validateDestinationTopic(discoveredTopic, allKafkaTopics, config) {
+			validatedTopicsList = append(validatedTopicsList, discoveredTopic)
+		} else {
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topic %v is invalid. SKIPPED."}, discoveredTopic)
 		}
-		copy(topicsDiscovered, validatedTopicsList)
-	} else {
-		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Since that the discovery method selected is 'DISCOVERY_METHOD_REGEX' or that distribution strategy is set to 'DISTRIBUTION_STRATEGY_REGEX' there's no need for topic validation because the destination topic is either based on the list of all topics in the kafka cluster or on the message itself."})
 	}
+	copy(topicsDiscovered, validatedTopicsList)
 
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Discovered topics. Number of topics discovered: %v, Total number of topics seen on Kafka: %v (ValidatedTopicsList: %v, Discovery method: %v, additional argument: %v)"}, len(topicsDiscovered), len(allKafkaTopics), validatedTopicsList, config.DiscoveryMethod, additionalArgument)
 	return
@@ -420,14 +417,19 @@ func discoverTopics(config Config, kafkaConsumer kafka.Consumer, topicsTopicRead
 
 func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, topicsTopicReader *kafka.Consumer) []string {
 	CUR_FUNCTION := "discoverTopicsByTopicsTopic"
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Function start. Building a consumer for the topics_topic topic (%v) if needed."}, config.DiscoveryTopicsTopic)
 	tmpTopicsList := make([]string, 0, 0)
 	if topicsTopicReader == nil {
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Topics reader is nil. Generating consumer for the topics topic {host: %v, group_id: %v, client_id: %v, offset: %v, topic: %v}"}, config.DiscoveryTopicsTopicServerHost, config.DiscoveryTopicsTopicGroupId, config.DiscoveryTopicsTopicClientId, KAFKA_DEFAULT_OFFSET_BEGINNING, config.DiscoveryTopicsTopic)
 		topicsTopicReaderObj := generateConsumer(config.DiscoveryTopicsTopicServerHost, config.DiscoveryTopicsTopicGroupId, config.DiscoveryTopicsTopicClientId, KAFKA_DEFAULT_OFFSET_BEGINNING, config.DiscoveryTopicsTopic)
 		topicsTopicReader = &topicsTopicReaderObj
+	} else {
+		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Function start. The consumer for the topics_topic topic (%v) already exists. Using the same one."}, config.DiscoveryTopicsTopic)
 	}
 	discoveryStarted := time.Now()
 	sortableTopicsList := make([]SortableTopicsListItem, 0, 0)
 	jsonTopicIndexParseFailed := false
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Attempting to read topics from the topics topic {host: %v, group_id: %v, client_id: %v, topic: %v, read_timeout: %v}"}, config.DiscoveryTopicsTopicServerHost, config.DiscoveryTopicsTopicGroupId, config.DiscoveryTopicsTopicClientId, config.DiscoveryTopicsTopic, config.DiscoveryTopicsTopicMaxWaitForTopics)
 	for {
 		msg, err := kafkaConsumer.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Millisecond)
 		if err != nil {
@@ -448,6 +450,7 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 			topicsTopicMessage := string(msg.Value)
 			topicsTopicMessageIsTopicName := false
 
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Discovered the following raw topic: `%v' (TopicsTopicMayContainJson: %v)"}, topicsTopicMessage, config.TopicsTopicMayContainJson)
 			if config.TopicsTopicMayContainJson {
 				var topicsTopicObject map[string]interface{}
 				e := json.Unmarshal([]byte(topicsTopicMessage), &topicsTopicObject)
@@ -499,12 +502,14 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 		}
 	}
 
+	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Discovered the following topics: sortableTopicsList:`%v', tmpTopicsList:`%v'"}, sortableTopicsList, tmpTopicsList)
 	if config.TopicsTopicMayContainJson && !jsonTopicIndexParseFailed && len(sortableTopicsList) > 0 {
 		if config.TopicsTopicSortByJsonFieldAscending {
 			sort.Sort(SortableTopicsListItemsDesc(sortableTopicsList))
 		} else {
 			sort.Sort(SortableTopicsListItemsAsc(sortableTopicsList))
 		}
+		//TODO: Probably we should convert the result from sort to a strings list and return it...
 	}
 	return tmpTopicsList
 }

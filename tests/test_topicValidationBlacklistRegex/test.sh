@@ -15,7 +15,7 @@ while true; do
     exit 1
   fi
   if grep 'porky_pig' /tmp/data-poller-raw/sample_poller.log>/dev/null 2>&1 && grep 'porky_pig' /tmp/data-poller-porky_pig/sample_poller.log>/dev/null 2>&1; then
-    echo "Found Sylvester's logs in the poller logs but they should only exist in the raw poller. (due to the topics blacklist)"
+    echo "Found Porky Pig's logs in the poller logs but they should only exist in the raw poller. (due to the topics blacklist)"
     exit 1
   fi
   if grep 'bugs_bunny' /tmp/data-poller-raw/sample_poller.log>/dev/null 2>&1 && grep 'porky_pig' /tmp/data-poller-raw/sample_poller.log>/dev/null 2>&1; then

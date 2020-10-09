@@ -155,7 +155,7 @@ services:
       KAFKA_POSTMAN_SOURCE_TOPIC: "metrics"
       KAFKA_POSTMAN_DISCOVERY_METHOD: "REGEX"
       KAFKA_POSTMAN_DISCOVERY_REGEX: ".*"
-      DEFAULT_TOPICS_VALIDATION_REGEX_WHITELIST: '["bugs_[a-z]+]"]'
+      KAFKA_POSTMAN_TOPICS_VALIDATION_REGEX_WHITELIST: '["bugs_[a-z]+"]'
     depends_on:
       - kafka
     deploy:

@@ -58,6 +58,8 @@ type Config struct {
 	TopicsValidationBlacklist               []string
 	TopicsValidationRegexWhitelist          []*regexp.Regexp
 	TopicsValidationRegexBlacklist          []*regexp.Regexp
+	TopicsValidationRegexWhitelistStrings   []string
+	TopicsValidationRegexBlacklistStrings   []string
 	TopicsValidationValidateAgainstKafka    bool
 }
 
@@ -138,6 +140,8 @@ func getConfig() Config {
 		TopicsValidationRegexWhitelist:          []*regexp.Regexp(autoSelectConfig(DEFAULT_TOPICS_VALIDATION_REGEX_WHITELIST, TOPICS_VALIDATION_REGEX_WHITELIST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_JSON_REGEX_ARRAY}, ConfigParamValueType_REGEX_ARRAY, []string{}).ValueRegexArray),
 		TopicsValidationRegexBlacklist:          []*regexp.Regexp(autoSelectConfig(DEFAULT_TOPICS_VALIDATION_REGEX_BLACKLIST, TOPICS_VALIDATION_REGEX_BLACKLIST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_JSON_REGEX_ARRAY}, ConfigParamValueType_REGEX_ARRAY, []string{}).ValueRegexArray),
 		TopicsValidationValidateAgainstKafka:    bool(autoSelectConfig(DEFAULT_TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA, TOPICS_VALIDATION_VALIDATE_AGAINST_KAFKA, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_BOOL}, ConfigParamValueType_BOOL, []string{}).ValueBool),
+		TopicsValidationRegexWhitelistStrings:   []string(autoSelectConfig(DEFAULT_TOPICS_VALIDATION_REGEX_WHITELIST, TOPICS_VALIDATION_REGEX_WHITELIST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_JSON_STRING_ARRAY}, ConfigParamValueType_STRING_ARRAY, []string{}).ValueStringArray),
+		TopicsValidationRegexBlacklistStrings:   []string(autoSelectConfig(DEFAULT_TOPICS_VALIDATION_REGEX_BLACKLIST, TOPICS_VALIDATION_REGEX_BLACKLIST, []ConfigValidationMode{ConfigValidationMode_IS_EMPTY, ConfigValidationMode_IS_JSON_STRING_ARRAY}, ConfigParamValueType_STRING_ARRAY, []string{}).ValueStringArray),
 	}
 }
 

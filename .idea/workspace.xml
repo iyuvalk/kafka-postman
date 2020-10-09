@@ -20,13 +20,48 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/kafka-postman.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kafka-postman.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" beforeDir="false" afterPath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main_pipeline_and_environment_vars_description.svg" beforeDir="false" afterPath="$PROJECT_DIR$/Main_pipeline_and_environment_vars_description.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/configHandler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logger.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/suppl/manhole/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/manhole/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_generator/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_generator/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/poll_data.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/poll_data.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/topics_topic_reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/topics_topic_reporter.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_defaults/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_defaults/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-manual/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-manual/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/cleanup.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/cleanup.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/init.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/init.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/test.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_distribution-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-regex/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/init.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/init.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex/docker-compose/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.go" beforeDir="false" afterPath="$PROJECT_DIR$/utils.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,7 +97,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -70,21 +105,21 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationKafka" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex" />
+      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/tests/test_distribution-regex" />
       <recent name="$PROJECT_DIR$/tests/suppl" />
       <recent name="$PROJECT_DIR$/tests/test_basic-sanity" />
       <recent name="$PROJECT_DIR$/bin" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/tests/test_topicValidationKafka" />
-      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex" />
-      <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex" />
-      <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
-      <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklist" />
     </key>
   </component>
   <component name="RunManager">
@@ -119,6 +154,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="443" y="211" width="1084" height="711" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1601529504682">
+      <screen x="50" y="27" width="1870" height="1053" />
+    </state>
+    <state x="443" y="211" width="1084" height="711" key="#com.intellij.execution.impl.EditConfigurationsDialog/50.27.1870.1053@50.27.1870.1053" timestamp="1601529504682" />
     <state x="638" y="355" width="633" height="403" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597123929025">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -127,34 +166,43 @@
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="622" y="178" width="666" height="758" key="#go_build_kafka-postman.go/0.27.1920.1053@0.27.1920.1053" timestamp="1594790097502" />
-    <state width="1874" height="358" key="GridCell.Tab.0.bottom" timestamp="1594975737249">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="825" y="322" width="309" height="495" key="EnvironmentVariablesDialog" timestamp="1601529480961">
+      <screen x="50" y="27" width="1870" height="1053" />
+    </state>
+    <state x="825" y="322" width="309" height="495" key="EnvironmentVariablesDialog/50.27.1870.1053@50.27.1870.1053" timestamp="1601529480961" />
+    <state x="768" y="300" width="424" height="520" key="FileChooserDialogImpl" timestamp="1601826679981">
+      <screen x="50" y="27" width="1870" height="1053" />
+    </state>
+    <state x="768" y="300" width="424" height="520" key="FileChooserDialogImpl/50.27.1870.1053@50.27.1870.1053" timestamp="1601826679981" />
+    <state width="1824" height="275" key="GridCell.Tab.0.bottom" timestamp="1601529528710">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
     <state width="1874" height="133" key="GridCell.Tab.0.bottom/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
-    <state width="1874" height="358" key="GridCell.Tab.0.center" timestamp="1594975737249">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state width="1824" height="275" key="GridCell.Tab.0.bottom/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528710" />
+    <state width="1824" height="275" key="GridCell.Tab.0.center" timestamp="1601529528709">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
     <state width="1874" height="133" key="GridCell.Tab.0.center/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
-    <state width="1874" height="358" key="GridCell.Tab.0.left" timestamp="1594975737248">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state width="1824" height="275" key="GridCell.Tab.0.center/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528709" />
+    <state width="1824" height="275" key="GridCell.Tab.0.left" timestamp="1601529528709">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737248" />
     <state width="1874" height="133" key="GridCell.Tab.0.left/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
-    <state width="1874" height="358" key="GridCell.Tab.0.right" timestamp="1594975737249">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state width="1824" height="275" key="GridCell.Tab.0.left/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528709" />
+    <state width="1824" height="275" key="GridCell.Tab.0.right" timestamp="1601529528710">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
     <state width="1874" height="133" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
-    <state x="449" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1599366109496">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state width="1824" height="275" key="GridCell.Tab.0.right/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528710" />
+    <state x="487" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1601826526786">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state x="449" y="188" width="1022" height="737" key="SettingsEditor/0.27.1920.1053@0.27.1920.1053" timestamp="1599366109496" />
-    <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1591810552827">
-      <screen x="0" y="27" width="1920" height="1053" />
-    </state>
-    <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2/0.27.1920.1053@0.27.1920.1053" timestamp="1591810552827" />
+    <state x="487" y="188" key="SettingsEditor/50.27.1870.1053@50.27.1870.1053" timestamp="1601826526786" />
     <state x="686" y="167" width="538" height="780" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1596347881560">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -163,13 +211,15 @@
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="568" y="316" width="1603" height="1009" key="dock-window-1/0.27.1920.1053@0.27.1920.1053" timestamp="1594186387226" />
-    <state x="650" y="162" width="619" height="783" key="find.popup" timestamp="1595830679745">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="683" y="162" width="603" height="783" key="find.popup" timestamp="1601828211763">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state x="650" y="162" width="619" height="783" key="find.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1595830679745" />
-    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1596429351564">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="683" y="162" width="603" height="783" key="find.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1601828211763" />
+    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1601828122724">
+      <screen x="50" y="27" width="1870" height="1053" />
     </state>
-    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1596429351564" />
+    <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600667428106" />
+    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1601828122724" />
   </component>
 </project>

@@ -29,12 +29,13 @@ while true; do
   SYLVESTER_COUNT=$(grep 'sylvester' /tmp/data-poller-raw/sample_poller.log | wc -l)
   BUGS_BUNNY_COUNT=$(grep 'bugs_bunny' /tmp/data-poller-raw/sample_poller.log | wc -l)
   PORKY_PIG_COUNT=$(grep 'porky_pig' /tmp/data-poller-raw/sample_poller.log | wc -l)
-  if [[ $CONTINUE -eq 0 ]] && [[ $IS_KAFKA_POSTMAN_LOADED -gt 0 ]] && [[ $SYLVESTER_COUNT -gt 50 ]] && [[ $BUGS_BUNNY_COUNT -gt 50 ]] && [[ $PORKY_PIG_COUNT -gt 50 ]]; then
+  if [[ $CONTINUE -eq 0 ]] && [[ $IS_KAFKA_POSTMAN_LOADED -gt 0 ]] && [[ $SYLVESTER_COUNT -gt 150 ]] && [[ $BUGS_BUNNY_COUNT -gt 150 ]] && [[ $PORKY_PIG_COUNT -gt 150 ]]; then
     echo "+It seems that the services are running (the relevant logs were found in the raw poller logs). Waiting 15secs and starting the test..."
     sleep 15s
     exit 0
   else
-    echo "+Waiting for kafka-postman to load... ($(expr $TS_CURRENT - $TS_STARTED) milliseconds so far)"
+    echo "
+    Waiting for kafka-postman to load... ($(expr $TS_CURRENT - $TS_STARTED) milliseconds so far)"
     sleep 1
   fi
 done

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -z $TOPICS_TOPIC_JSON ] || [ -z $TOPICS_TOPIC_TEXT ]; then
-  topics_topic_reporter.sh &
+if [ -n "$TOPICS_TOPIC_JSON" ] || [ -n "$TOPICS_TOPIC_TEXT" ]; then
+  /topics_topic_reporter.sh &
 fi
 
 
