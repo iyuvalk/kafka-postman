@@ -20,49 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/test.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/kafka-postman.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kafka-postman.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" beforeDir="false" afterPath="$PROJECT_DIR$/Main pipeline and environment vars description.epgz" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main_pipeline_and_environment_vars_description.svg" beforeDir="false" afterPath="$PROJECT_DIR$/Main_pipeline_and_environment_vars_description.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/configHandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/suppl/manhole/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/manhole/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_generator/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_generator/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/poll_data.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/poll_data.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_poller/topics_topic_reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_poller/topics_topic_reporter.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_defaults/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_defaults/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-manual/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-manual/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-regex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/cleanup.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/cleanup.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/init.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/XXXXtest_discovery-topicsTopic/init.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopic/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_distribution-regex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-regex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/init.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/init.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklist/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex/test.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelist/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex/docker-compose/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex/docker-compose/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.go" beforeDir="false" afterPath="$PROJECT_DIR$/utils.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
