@@ -20,7 +20,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/cleanup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/docker-compose/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/init.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/suppl/sample_data_generator/generate_data.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/suppl/sample_data_generator/generate_data.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_distribution-roundrobin/test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +67,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tests" />
+    <property name="last_opened_file_path" value="$USER_HOME$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -63,21 +75,21 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="terminal" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.ChangelistConflict" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/test_distribution-regex" />
+      <recent name="$PROJECT_DIR$/tests/suppl" />
+      <recent name="$PROJECT_DIR$/tests/test_basic-sanity" />
+      <recent name="$PROJECT_DIR$/bin" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/tests/test_discovery-topicsTopic" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationKafka" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelistRegex" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationBlacklistRegex" />
       <recent name="$PROJECT_DIR$/tests/test_topicValidationWhitelist" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/tests/test_distribution-regex" />
-      <recent name="$PROJECT_DIR$/tests/suppl" />
-      <recent name="$PROJECT_DIR$/tests/test_basic-sanity" />
-      <recent name="$PROJECT_DIR$/bin" />
     </key>
   </component>
   <component name="RunManager">
@@ -136,31 +148,27 @@
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
-    <state width="1874" height="133" key="GridCell.Tab.0.bottom/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
     <state width="1824" height="275" key="GridCell.Tab.0.bottom/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528710" />
     <state width="1824" height="275" key="GridCell.Tab.0.center" timestamp="1601529528709">
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
-    <state width="1874" height="133" key="GridCell.Tab.0.center/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
     <state width="1824" height="275" key="GridCell.Tab.0.center/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528709" />
     <state width="1824" height="275" key="GridCell.Tab.0.left" timestamp="1601529528709">
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737248" />
-    <state width="1874" height="133" key="GridCell.Tab.0.left/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
     <state width="1824" height="275" key="GridCell.Tab.0.left/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528709" />
     <state width="1824" height="275" key="GridCell.Tab.0.right" timestamp="1601529528710">
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state width="1874" height="358" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1594975737249" />
-    <state width="1874" height="133" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1593495872334" />
     <state width="1824" height="275" key="GridCell.Tab.0.right/50.27.1870.1053@50.27.1870.1053" timestamp="1601529528710" />
-    <state x="487" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1601826526786">
+    <state x="487" y="188" width="1022" height="737" key="SettingsEditor" timestamp="1602478021567">
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state x="449" y="188" width="1022" height="737" key="SettingsEditor/0.27.1920.1053@0.27.1920.1053" timestamp="1599366109496" />
-    <state x="487" y="188" key="SettingsEditor/50.27.1870.1053@50.27.1870.1053" timestamp="1601826526786" />
+    <state x="487" y="188" width="1022" height="737" key="SettingsEditor/50.27.1870.1053@50.27.1870.1053" timestamp="1602478021567" />
     <state x="686" y="167" width="538" height="780" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1596347881560">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -174,10 +182,10 @@
     </state>
     <state x="650" y="162" width="619" height="783" key="find.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1595830679745" />
     <state x="683" y="162" width="603" height="783" key="find.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1601828211763" />
-    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1601828122724">
+    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup" timestamp="1602608874351">
       <screen x="50" y="27" width="1870" height="1053" />
     </state>
     <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600667428106" />
-    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1601828122724" />
+    <state x="657" y="272" width="672" height="678" key="search.everywhere.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1602608874351" />
   </component>
 </project>

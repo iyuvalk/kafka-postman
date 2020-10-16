@@ -4,7 +4,7 @@
   #cd "$FOLDER/docker-compose"
   #sudo docker stack deploy --compose-file docker-compose.yml kafka-postman
 
-TESTS_COUNT=20
+TESTS_COUNT=50
 while true; do
   if grep 'sylvester' /tmp/data-poller-raw/sample_poller.log>/dev/null 2>&1 && ! grep 'sylvester' /tmp/data-poller-sylvester/sample_poller.log>/dev/null 2>&1; then
     echo "Failed to find Sylvester's logs in Sylvester's poller logs but they exist in the raw poller."

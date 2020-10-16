@@ -431,16 +431,18 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 	jsonTopicIndexParseFailed := false
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Attempting to read topics from the topics topic {host: %v, group_id: %v, client_id: %v, topic: %v, read_timeout: %v}"}, config.DiscoveryTopicsTopicServerHost, config.DiscoveryTopicsTopicGroupId, config.DiscoveryTopicsTopicClientId, config.DiscoveryTopicsTopic, config.DiscoveryTopicsTopicMaxWaitForTopics)
 	for {
-		msg, err := kafkaConsumer.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Millisecond)
+		msg, err := topicsTopicReader.ReadMessage(time.Duration(config.DiscoveryTopicsTopicMaxWaitForTopics) * time.Millisecond)
 		if err != nil {
 			if err.Error() == kafka.ErrTimedOut.String() {
 				//These are probably all the topics published for now
+				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "These are probably all the topics published for now"})
 				break
 			} else {
 				//Log error and attempt to recover...
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_ERROR, MessageFormat: "Topics topic discoverer consumer error: %v (%v)"}, err, msg)
 				if len(tmpTopicsList) > 0 {
 					//If some topics were discovered - we'll continue with them
+					LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "If some topics were discovered - we'll continue with them"})
 					break
 				} else {
 					//otherwise, we'll remain here and try to discover topics until timeout will kick in
@@ -498,6 +500,7 @@ func discoverTopicsByTopicsTopic(config Config, kafkaConsumer kafka.Consumer, to
 
 		if time.Now().Sub(discoveryStarted).Milliseconds() > config.DiscoveryTopicsTopicMaxDiscoveryTimeout {
 			//Prevent the loop from running forever if the consumers will keep sending topic names to the topics topic at a high rate
+			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Preventing the loop from running forever if the consumers will keep sending topic names to the topics topic at a high rate"})
 			break
 		}
 	}

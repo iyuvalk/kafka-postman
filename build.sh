@@ -76,13 +76,19 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
               sleep 5s
             else
               echo "[$(date --iso=seconds)][INFO] Test $test_folder FAILED ($RETRIES retries left). Leaving everything UNCLEAN to help debug this... (You can clean it up by running \"$(realpath $test_folder)/cleanup.sh\" \"$(realpath $test_folder)\")"
-              exit 9
+              #exit 9
+              curl localhost:8080/set-solid-color/ff0000
+              sleep 2
+              "$(realpath $test_folder)/cleanup.sh" "$(realpath $test_folder)"
             fi
           fi
           (( RETRIES-- ))
           if [ $RETRIES -eq 0 ] && [ $TEST_STATUS -gt 0 ]; then
             echo "[$(date --iso=seconds)][INFO] Test $test_folder FAILED ($RETRIES retries left). Leaving everything UNCLEAN to help debug this... (You can clean it up by running \"$(realpath $test_folder)/cleanup.sh\" \"$(realpath $test_folder)\")"
-            exit 9
+            #exit 9
+            curl localhost:8080/set-solid-color/ff0000
+            sleep 2
+            "$(realpath $test_folder)/cleanup.sh" "$(realpath $test_folder)"
           fi
         done
       done

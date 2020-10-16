@@ -1,5 +1,6 @@
 #!/bin/bash
-server_farms=(tweety sylvester bugs_bunny daffy_duck porky_pig foghorn_leghorn tasmanian_devil yosemite_sam marvin_the_martian elmer_fudd pepe_le_pew speedy_gonzales granny petunia_pig bosko beaky_buzzard henry_hawk witch_hazel melissa_duck barnyard_dawg road_runner claude_cat hector_the_bulldog wile_e_coyote slow_poke_rodrigez charlie_dog)
+#server_farms=(tweety sylvester bugs_bunny daffy_duck porky_pig foghorn_leghorn tasmanian_devil yosemite_sam marvin_the_martian elmer_fudd pepe_le_pew speedy_gonzales granny petunia_pig bosko beaky_buzzard henry_hawk witch_hazel melissa_duck barnyard_dawg road_runner claude_cat hector_the_bulldog wile_e_coyote slow_poke_rodrigez charlie_dog)
+server_farms=(tweety sylvester bugs_bunny daffy_duck porky_pig foghorn_leghorn tasmanian_devil)
 server_categories=(mail web storage database firewall crm portal dns kafka redis kubernetes nginx)
 databases=(mysql postgres mssql mongo elasticsearch hadoop)
 metric_categories=(cpu.usage cpu.load memory.usage memory.total memory.free memory.swap network.bytes_in network.bytes_out network.packets_in network.packets_out)
