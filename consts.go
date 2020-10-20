@@ -73,7 +73,7 @@ const (
 	DEFAULT_DEFAULT_TARGET_TOPIC                       = "_unknown_recipient"
 	DEFAULT_TOPIC_PINNING_ENABLED                      = "false"
 	DEFAULT_TOPIC_PINNING_REGEX                        = "^([^\\\\.]+)\\..*$"
-	DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES         = "0"
+	DEFAULT_TOPIC_PINNING_REGEX_GROUPS_INDEXES         = "1"
 	DEFAULT_AUTO_DESTINATION_TOPIC_FILTERING_ENABLED   = "true"
 	DEFAULT_DISCOVERY_TOPICS_TOPIC_SERVER_HOST         = "kafka:9092"
 	DEFAULT_DISCOVERY_TOPICS_TOPIC_GROUP_ID            = "kafka-postman-topics-discoverer"

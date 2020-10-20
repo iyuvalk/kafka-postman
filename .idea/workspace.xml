@@ -20,7 +20,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/init.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_discovery-topicsTopicText/init.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

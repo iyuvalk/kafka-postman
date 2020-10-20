@@ -409,7 +409,8 @@ func discoverTopics(config Config, kafkaConsumer kafka.Consumer, topicsTopicRead
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "Topic %v is invalid. SKIPPED."}, discoveredTopic)
 		}
 	}
-	copy(topicsDiscovered, validatedTopicsList)
+	topicsDiscovered = validatedTopicsList
+	//copy(topicsDiscovered, validatedTopicsList)
 
 	LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_INFO, MessageFormat: "Discovered topics. Number of topics discovered: %v, Total number of topics seen on Kafka: %v (ValidatedTopicsList: %v, Discovery method: %v, additional argument: %v)"}, len(topicsDiscovered), len(allKafkaTopics), validatedTopicsList, config.DiscoveryMethod, additionalArgument)
 	return
