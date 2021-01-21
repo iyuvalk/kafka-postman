@@ -10,6 +10,9 @@ REV=$(( REV + 1 ))
 DATE=$(date +%s)
 NEW_VERSION="${MAJOR}.${MINOR}.${REV}.${DATE}"
 MAX_RETRIES=50
+if [[ "$1" == "--force" ]]; then
+  FORCE="1"
+fi
 
 cd "$FOLDER"
 echo "[$(date --iso=seconds)][INFO] Getting old version's hash..."
@@ -20,11 +23,11 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
   echo "[$(date --iso=seconds)][INFO] Getting new version hash..."
   find "$FOLDER/bin" -type f -exec md5sum {} \; | sort
   NEW_VER_HASH=$(find "$FOLDER/bin" -type f -exec md5sum {} \; | sort | md5sum | awk '{print $1}')
-  if [[ "$NEW_VER_HASH" == "$OLD_VER_HASH" ]]; then
+  if [[ "$NEW_VER_HASH" == "$OLD_VER_HASH" ]] && [[ "$FORCE" -ne "1" ]]; then
     echo "[$(date --iso=seconds)][INFO] The new version has not changed. Assuming that only the tests have changed."
     BIN_CHANGE_DETECTED=0
   else
-    echo "[$(date --iso=seconds)][INFO] The new version has changed. Updating the version file..."
+    echo "[$(date --iso=seconds)][INFO] The new version has changed (or --force was used). Updating the version file..."
     BIN_CHANGE_DETECTED=1
     echo "[$(date --iso=seconds)][INFO] Updating version number..."
     echo \
@@ -96,7 +99,7 @@ if go build -o "$FOLDER/bin/kafka-postman/kafka-postman"; then
       echo '+WARN: Folder '"$test_folder"' does not contain any executable files named "test*.sh". SKIPPING'
     fi
   done
-  if [[ "$BIN_CHANGE_DETECTED" == 1 ]]; then
+  if [[ "$BIN_CHANGE_DETECTED" == 1 ]] || [[ "$FORCE" == "1" ]]; then
     echo "[$(date --iso=seconds)][INFO] All tests ran successfully. Docker image at version $NEW_VERSION is available locally. Tagging the new image"
     IMAGE_ID=$(docker image ls | grep -E '^kafka-postman\s+'"$NEW_VERSION" | awk '{print $3}')
     docker tag $IMAGE_ID artifexil/kafka-postman:$NEW_VERSION
