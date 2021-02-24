@@ -319,7 +319,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 				LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_ERROR, MessageFormat: "Cannot calculate topic-pinning fingerprint for message `%v', the regex `%v' did not find enough matching strings within the message. Matches found: %v, Expected match number: %v"}, msg, config.TopicPinningRegexString, len(regexMatches), groupIdx)
 				os.Exit(9)
 			}
-			messageFingerprintRaw = append(messageFingerprintRaw, regexMatches[groupIdx]) //TODO: panic: runtime error: index out of range [1] with length 0
+			messageFingerprintRaw = append(messageFingerprintRaw, regexMatches[groupIdx])
 		}
 		messageFingerprintRawBytes, _ := json.Marshal(messageFingerprintRaw)
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_VERBOSE, MessageFormat: "This is the raw text used as the basis for the fingerprint: %v"}, string(messageFingerprintRawBytes))
@@ -343,7 +343,7 @@ func handleTopicPinning(config Config, defaultDestinationTopic string, msg strin
 
 		//6.i.e. Write the value of defaultDestinationTopic to Redis under the current fingerprint to either reset the fingerprint sliding expiration (if already exists) or to cache it (if it's new)
 		LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: nil, Level: LogLevel_DEBUG, MessageFormat:"Updating the selected topic for the current message fingerprint to either reset the sliding expiration if already exist or to set the fingerprint for other similar messages if not already exist... (Message fingerprint: %v, Topic: %v, Expiration: %v)"}, messageFingerprint, defaultDestinationTopic, config.TopicPinningHashSlidingExpiryMs)
-		res = sync.Do(ctx, "SET", messageFingerprint, defaultDestinationTopic, "PX", config.TopicPinningHashSlidingExpiryMs)
+		res = sync.Do(ctx, "EXPIRE", messageFingerprint, config.TopicPinningHashSlidingExpiryMs)
 		if err := redis.AsError(res); err != nil {
 			LogForwarder(&config, LogMessage{Caller: CUR_FUNCTION, Error: err, Level: LogLevel_WARN, MessageFormat: "Could not process topic pinning. An error occurred while updating a value to Redis."})
 		}

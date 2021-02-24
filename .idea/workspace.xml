@@ -21,11 +21,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a20088a1-476d-4e40-abe7-73d0be446aad" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VERSION.json" beforeDir="false" afterPath="$PROJECT_DIR$/VERSION.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" beforeDir="false" afterPath="$PROJECT_DIR$/bin/kafka-postman/kafka-postman" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/consts.go" beforeDir="false" afterPath="$PROJECT_DIR$/consts.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kafka-postman.go" beforeDir="false" afterPath="$PROJECT_DIR$/kafka-postman.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/version.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -180,16 +176,5 @@
     </state>
     <state x="623" y="272" width="672" height="678" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600667428106" />
     <state x="657" y="272" width="672" height="678" key="search.everywhere.popup/50.27.1870.1053@50.27.1870.1053" timestamp="1602608874351" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/kafka-postman.go</url>
-          <line>345</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
